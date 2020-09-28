@@ -19,7 +19,7 @@ se <-  function (x) {
 
 # set colours for treatments: control, girdled, compressed, double compressed and chilled
 #----------------------------------------------------------------------------------------
-tColours <- tibble (colour = c ('#91b9a4','#C0334D','#F18904','#5C4A72','#23345C'),
+tColours <- tibble (colour = c ('#91b9a4','#C0334D','#F18904','#5C4A72','#0073cf'),
                     treatment = c ('control','girdled','compressed','double compressed',
                                    'chilled'))
 

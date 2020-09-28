@@ -1,6 +1,6 @@
 #========================================================================================
 # Script to plot the temperature data from the project chill shed and the phloem of all 
-# trees at 1.0 and 2.0 m.
+# trees at 1.0 and 2.0 m of the 2019 chilling experiment on red maple at Harvard Forest.
 #----------------------------------------------------------------------------------------
 
 # source temperature data
