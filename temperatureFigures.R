@@ -34,7 +34,7 @@ lines (x = tempData [['datetime']],
        col = tColours [['colour']] [5])
 lines (x = tempData [['datetime']],
        y = tempData [['t.acer.06.2p0m']],
-       col = tColours [['colour']] [5]) # TR Still has bad values
+       col = tColours [['colour']] [5])
 lines (x = tempData [['datetime']], 
        y = tempData [['t.acer.07.2p0m']],
        col = tColours [['colour']] [5])
@@ -45,10 +45,10 @@ lines (x = tempData [['datetime']],
        col = tColours [['colour']] [1])
 lines (x = tempData [['datetime']], 
        y = tempData [['t.acer.03.2p0m']],
-       col = tColours [['colour']] [1]) # TR Still has bad values
+       col = tColours [['colour']] [1]) 
 lines (x = tempData [['datetime']], 
        y = tempData [['t.acer.05.2p0m']],
-       col = tColours [['colour']] [1]) # TR Still has bad values 
+       col = tColours [['colour']] [1]) 
 lines (x = tempData [['datetime']],
        y = tempData [['t.acer.08.2p0m']],
        col = tColours [['colour']] [1]) # TR still has bad values
@@ -82,7 +82,7 @@ lines (x = tempData [['datetime']],
        col = tColours [['colour']] [5])
 lines (x = tempData [['datetime']], 
        y = tempData [['t.acer.06.1p0m']],
-       col = tColours [['colour']] [5]) # TR Still has bad values
+       col = tColours [['colour']] [5])
 lines (x = tempData [['datetime']], 
        y = tempData [['t.acer.07.1p0m']],
        col = tColours [['colour']] [5])
@@ -111,3 +111,4 @@ legend (x = as_datetime ('2019-05-07'), y = 35, box.lty = 0,
         col = tColours [['colour']] [c (2, 1, 5)], 
         legend = c ('air temperature','control trees','chilled trees'),
         lwd = 1, cex = 0.6, bg = 'transparent')
+
