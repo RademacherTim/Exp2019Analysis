@@ -51,7 +51,7 @@ lines (x = tempData [['datetime']],
        col = tColours [['colour']] [1]) 
 lines (x = tempData [['datetime']],
        y = tempData [['t.acer.08.2p0m']],
-       col = tColours [['colour']] [1]) # TR still has bad values
+       col = tColours [['colour']] [1])
 
 # add air temperature
 lines (x = tempData [['datetime']], 
