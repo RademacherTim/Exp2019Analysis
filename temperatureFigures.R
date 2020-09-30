@@ -18,7 +18,7 @@ plot (x = tempData [['datetime']],
       ylim = c (-10, 35),
       xaxt = 'n', xlab = '', ylab = '2 m',
       col = tColours [['colour']] [5])
-mtext (text = expression (paste ('phloem temperature (',degree,'C)', sep = '')), 
+mtext (text = expression (paste ('temperature (',degree,'C)', sep = '')), 
        side = 2, line = 5, cex = 1.8, at = -15)
 
 # add desired chilling zone
@@ -55,7 +55,7 @@ lines (x = tempData [['datetime']],
 
 # add air temperature
 lines (x = tempData [['datetime']], 
-       y = tempData [['t.misc1']],
+       y = tempData [['t.air.1p5m']],
        col = tColours [['colour']] [2])
 
 # add temperatures at 1 m
@@ -103,12 +103,12 @@ lines (x = tempData [['datetime']],
 
 # add air temperature
 lines (x = tempData [['datetime']], 
-       y = tempData [['t.misc1']],
+       y = tempData [['t.air.1p5m']],
        col = tColours [['colour']] [2])
 
 # add legend 
 legend (x = as_datetime ('2019-05-07'), y = 35, box.lty = 0, 
         col = tColours [['colour']] [c (2, 1, 5)], 
-        legend = c ('air temperature','control trees','chilled trees'),
+        legend = c ('air temperature (1.5m)','control trees','chilled trees'),
         lwd = 1, cex = 0.6, bg = 'transparent')
 
