@@ -440,6 +440,13 @@ phloemData2019 <- dataExp2019 [substr (dataExp2019 [['Tissue']], 1, 6) == 'Phloe
 stemData2019   <- dataExp2019 [substr (dataExp2019 [['Tissue']], 1, 4) == 'Stem', ]
 rootData2019   <- dataExp2019 [substr (dataExp2019 [['Tissue']], 1, 4) == 'Root', ]
 
+# average across initial and re-run for the roots because they have pretty similar values
+#--------------------------------------------------------------------------------------
+rootData2019 <- rootData2019 %>% group_by (treeID, treatment, DateOfSampleCollection) %>% 
+  summarise (ConcentrationSugarPerDW  = mean (ConcentrationSugarPerDW,  na.rm = TRUE),
+             ConcentrationStarchPerDW = mean (ConcentrationStarchPerDW, na.rm = TRUE)) %>% 
+  ungroup ()
+
 # get the coefficient of variation for lab controls 
 #--------------------------------------------------------------------------------------
 COV <- filter (dataExp2019, substr (SampleID, 1, 7) == 'LCS Oak' |

@@ -42,10 +42,27 @@ yPositions <- c (0.8, 1.8, 2.3, 3.3, 3.8, 4.8, 5.3, 5.8)
 
 # Function to plot critical dates
 #----------------------------------------------------------------------------------------
-criticalDates <- function (group, asDate = FALSE) {
+criticalDates <- function (group, asDate = FALSE, startOnly = FALSE, endOnly = FALSE) {
   
+  # if only start or end date are required return only the appropriate date
+  #------------------------------------------------------------------------------------
+  if (startOnly) {
+    if (asDate) {
+      return (as_date ('2019-05-29'))
+    } else {
+      return (as_datetime ('2019-05-29 12:00:00'))
+    } 
+  }
+  if (endOnly) {
+    if (asDate) {
+      return (as_date ('2019-07-10'))
+    } else {
+      return (as_datetime ('2019-07-10 12:00:00'))
+    } 
+  }
+
   # Figure out critical date and plot them
-  #--------------------------------------------------------------------------------------
+  #------------------------------------------------------------------------------------
   if (asDate) {
     abline (v = as_date ('2019-05-29'), col = '#99999999', lty = 2) # start date
   } else {
