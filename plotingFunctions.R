@@ -51,7 +51,7 @@ criticalDates <- function (group, asDate = FALSE) {
   } else {
     abline (v = as_datetime ('2019-05-29 12:00:00'), col = '#99999999', lty = 2) # start date
   }
-  if (group == 'chilled') {
+  if (group == 'chilled' | group == '5') {
     if (asDate) {
       abline (v = as_date ('2019-07-10'), col = '#99999999', lty = 2) # end date
     } else {

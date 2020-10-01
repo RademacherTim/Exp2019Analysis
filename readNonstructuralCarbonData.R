@@ -468,5 +468,7 @@ setwd (originalDir)
 
 # clean up
 #----------------------------------------------------------------------------------------
-rm (i, temp, COV, originalDir, dataExp2019)
+rm (extractionsStarch, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9, 
+    batch, batches, colNames, condition, i, temp, COV, dates, originalDir, packageDir, 
+    prescribedStarch, dataExp2019)
 #========================================================================================
