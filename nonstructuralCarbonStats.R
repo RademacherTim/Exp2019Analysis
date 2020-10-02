@@ -134,7 +134,7 @@ M6 <- lmer (formula = starch ~ (tree | height) + date + period:treatment:height,
             REML = TRUE)
 summary (M6)
 
-# phloem
+# root
 #----------------------------------------------------------------------------------------
 M7 <- lmer (formula = sugar ~ (1 | tree) + date + period:treatment, 
             data = rootData2019,
