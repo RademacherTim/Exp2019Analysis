@@ -19,9 +19,15 @@ source ('./readTemperatureData.R')
 #----------------------------------------------------------------------------------------
 hourlyData <- tempData %>% 
   group_by (datetime = cut (datetime, breaks = '1 hour')) %>% 
-  summarise (u.battery      = mean (u.battery,  na.rm = TRUE),
-             t.panel        = mean (t.panel,    na.rm = TRUE),
-             t.oak.1p5m     = mean (t.oak.1p5m, na.rm = TRUE),
+  summarise (t.acer.01.1p5m = mean (t.acer.01.1p5m , na.rm = TRUE),
+             t.acer.02.1p5m = mean (t.acer.02.1p5m , na.rm = TRUE),
+             t.acer.03.1p5m = mean (t.acer.03.1p5m , na.rm = TRUE),
+             t.acer.04.1p5m = mean (t.acer.04.1p5m , na.rm = TRUE),
+             t.acer.05.1p5m = mean (t.acer.05.1p5m , na.rm = TRUE),
+             t.acer.06.1p5m = mean (t.acer.06.1p5m , na.rm = TRUE),
+             t.acer.07.1p5m = mean (t.acer.07.1p5m , na.rm = TRUE),
+             t.acer.08.1p5m = mean (t.acer.08.1p5m , na.rm = TRUE),
+             t.oak.1p5m     = mean (t.oak.1p5m,      na.rm = TRUE),
              t.acer.02.2p0m = mean (t.acer.02.2p0m , na.rm = TRUE),
              t.acer.02.1p0m = mean (t.acer.02.1p0m , na.rm = TRUE),
              t.acer.04.2p0m = mean (t.acer.04.2p0m , na.rm = TRUE),
@@ -38,31 +44,26 @@ hourlyData <- tempData %>%
              t.acer.05.1p0m = mean (t.acer.05.1p0m , na.rm = TRUE),
              t.acer.08.2p0m = mean (t.acer.08.2p0m , na.rm = TRUE),
              t.acer.08.1p0m = mean (t.acer.08.1p0m , na.rm = TRUE),
-             t.misc1    = mean (t.misc1, na.rm = TRUE),
-             t.misc2    = mean (t.misc2, na.rm = TRUE),
-             t.air.1p5m = mean (t.air.1p5m, na.rm = TRUE))
+             t.air.1p5m     = mean (t.air.1p5m, na.rm = TRUE))
 
 # convert datetime back from factor to datetime
 #----------------------------------------------------------------------------------------
 hourlyData [['datetime']] <- as_datetime (hourlyData [['datetime']])
 
-# check how often the datalogger battery voltage dropped below 11.0 watts at some point
-#----------------------------------------------------------------------------------------
-res <- sum (hourlyData [['u.battery']] < 9.5, na.rm = TRUE)
-hourlyData <- hourlyData %>% filter (u.battery > 9.5) 
-
-# select only relevant temperature variables
-#----------------------------------------------------------------------------------------
-hourlyData <- hourlyData %>% select (-c (u.battery, t.panel))
-
 # average daily values 
 #----------------------------------------------------------------------------------------
 dailyAverage <- hourlyData %>% 
   group_by (datetime = cut (datetime, breaks = '1 day')) %>% 
-  summarise (t.oak.1p5m = mean (t.oak.1p5m, na.rm = TRUE),
+  summarise (t.01.1p5m  = mean (t.acer.01.1p5m , na.rm = TRUE),
+             t.02.1p5m  = mean (t.acer.02.1p5m , na.rm = TRUE),
+             t.03.1p5m  = mean (t.acer.03.1p5m , na.rm = TRUE),
+             t.04.1p5m  = mean (t.acer.04.1p5m , na.rm = TRUE),
+             t.05.1p5m  = mean (t.acer.05.1p5m , na.rm = TRUE),
+             t.06.1p5m  = mean (t.acer.06.1p5m , na.rm = TRUE),
+             t.07.1p5m  = mean (t.acer.07.1p5m , na.rm = TRUE),
+             t.08.1p5m  = mean (t.acer.08.1p5m , na.rm = TRUE),
+             t.oak.1p5m = mean (t.oak.1p5m, na.rm = TRUE),
              t.air.1p5m = mean (t.air.1p5m, na.rm = TRUE),
-             #t.misc1    = mean (t.misc1,    na.rm = TRUE),
-             #t.misc2    = mean (t.misc2,    na.rm = TRUE),
              t.01.2p0m  = mean (t.acer.01.2p0m, na.rm = TRUE),
              t.01.1p0m  = mean (t.acer.01.1p0m, na.rm = TRUE),
              t.02.2p0m  = mean (t.acer.02.2p0m, na.rm = TRUE),
@@ -119,10 +120,10 @@ dailyAverage <- dailyAverage %>% filter (!is.nan (temp), !is.na (temp))
 # wrangle fixed effects into reasonably-leveled factors
 #----------------------------------------------------------------------------------------
 dailyAverage <- dailyAverage %>% 
-  mutate (period    = factor (period,    levels = c ('during','after','before')),
+  mutate (period    = factor (period,    levels = c ('before','after','during')),
           periodAlt = factor (periodAlt, levels = c ('chilling','non-chilling')),
           height    = factor (height,    levels = c ('2p0m','1p0m','1p5m')),
-          treatment = factor (treatment, levels = c ('chilled','control','air')),
+          treatment = factor (treatment, levels = c ('chilled','air','control')),
           datetime  = factor (datetime),
           tree      = factor (tree))
 
