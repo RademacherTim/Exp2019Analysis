@@ -41,7 +41,7 @@ rootData2019 <- rootData2019 %>%
           sugar = ConcentrationSugarPerDW, starch = ConcentrationStarchPerDW) %>%
   mutate (date = as_date (date))
 
-# get start and end dates for each treatment
+# get start and end date of the chilling
 #----------------------------------------------------------------------------------------
 startDate <- criticalDates (group = '5', asDate = TRUE, startOnly = TRUE) 
 endDate   <- criticalDates (group = '5', asDate = TRUE, endOnly   = TRUE)
