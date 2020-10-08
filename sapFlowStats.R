@@ -75,5 +75,5 @@ M1 <- lmer (formula = v.sap ~ (1 | tree) + depth + datetime + period:treatment,
             data = temp,
             REML = TRUE)
 summary (M1)
-# TR Chweck whether there is another Inf in one of the v.sap, because the fixed effect model crashed.
+# TR Check whether there is another Inf in one of the v.sap, because the fixed effect model crashed.
 #========================================================================================
