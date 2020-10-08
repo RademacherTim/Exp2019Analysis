@@ -12,12 +12,12 @@ source ('../Exp2019Analysis/plotingFunctions.R')
 #----------------------------------------------------------------------------------------
 source ('./readSapFlowData.R')
 
-# reconvert datetime to a datetime
+# reduce datetime to nearest 15 minute interval
 #----------------------------------------------------------------------------------------
 sapFlowData [['datetime']] <- sapFlowData [['datetime']] %>%
   floor_date (unit = '15 mins')
 
-# average temperature data over 15-minute intervals
+# average sap flow data over one hour intervals
 #----------------------------------------------------------------------------------------
 sapFlowData <- sapFlowData %>% 
   select (datetime, v.sap.1, v.sap.2, v.sap.3, tree, treatment) %>%
@@ -51,29 +51,58 @@ sapFlowData %>% group_by (treatment, period) %>%
              mean.v.sap.3 = mean (v.sap.3, na.rm = TRUE),
              se.v.sap.3   = se   (v.sap.3))
 
+# reduce datetime to nearest 15 minute interval
+#----------------------------------------------------------------------------------------
+sapFlowData <- sapFlowData  %>% mutate (date = as_date (datetime))
+
+# average sap data over 15-minute intervals
+#----------------------------------------------------------------------------------------
+dailySapFlowData <- sapFlowData %>% 
+  group_by (tree, treatment, date) %>%
+  summarise (v.sap.90th.1 = quantile (v.sap.1, 0.95, na.rm = TRUE),
+             v.sap.90th.2 = quantile (v.sap.2, 0.95, na.rm = TRUE),
+             v.sap.90th.3 = quantile (v.sap.3, 0.95, na.rm = TRUE)) %>% 
+  ungroup ()
+
 # wrangle data into long format
 #----------------------------------------------------------------------------------------
-temp <- pivot_longer (data = sapFlowData, cols = c (v.sap.1, v.sap.2, v.sap.3), 
-                      names_to = 'depth', names_prefix = 'v.sap.', 
+temp <- pivot_longer (data = dailySapFlowData, 
+                      cols = c (v.sap.90th.1, v.sap.90th.2, v.sap.90th.3), 
+                      names_to = 'depth', names_prefix = 'v.sap.90th.', 
                       values_to = 'v.sap')
+
+# add column based on period (e.g., before, during, and after treatment)
+#----------------------------------------------------------------------------------------
+period <- ifelse (temp [['date']] < as_date (startDate), 'before', 
+                  ifelse (temp [['date']] > as_date (endDate), 'after','during'))
+periodAlt <- ifelse (temp [['date']] < as_date (startDate) | 
+                     temp [['date']] > as_date (endDate),'non-chilling','chilling')
+temp <- temp %>% mutate (period, periodAlt)
 
 # convert variable to factors
 #----------------------------------------------------------------------------------------
 temp <- temp %>%
-  mutate (datetime  = factor (datetime),
+  mutate (datetime  = factor (date),
           tree      = factor (tree),
           treatment = factor (treatment, levels = c (5, 1)),
           period    = factor (period,    levels = c ('during','after','before')),
           periodAlt = factor (periodAlt, levels = c ('chilling','non-chilling')),
-          depth     = factor (depth,     levels = 3:1))
+          depth     = factor (depth,     levels = 1:3))
 
 # fit mixed effects model to wood sugar concentrations with tree and height as random 
 # effects to account for idiosyncratic differences due to factors such as variations 
 # in exact azimuth or systematic difference between trees
 #----------------------------------------------------------------------------------------
-M1 <- lmer (formula = v.sap ~ (1 | tree) + depth + datetime + period:treatment, 
+M1 <- lmer (formula = v.sap ~ (1 | tree) + depth +  date + period:treatment, 
             data = temp,
             REML = TRUE)
 summary (M1)
-# TR Check whether there is another Inf in one of the v.sap, because the fixed effect model crashed.
+
+for (treeID in 1:8) {
+  for (iDepth in 1:3) { 
+    plot (x = select (filter (temp, tree == treeID & depth == iDepth), date) [[1]],
+          y = select (filter (temp, tree == treeID & depth == iDepth), v.sap) [[1]], typ ='l',
+          las = 1)
+  }
+}
 #========================================================================================
