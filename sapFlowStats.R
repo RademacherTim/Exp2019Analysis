@@ -17,92 +17,119 @@ source ('./readSapFlowData.R')
 sapFlowData [['datetime']] <- sapFlowData [['datetime']] %>%
   floor_date (unit = '15 mins')
 
-# average sap flow data over one hour intervals
+# average sap flow data over 15 minute intervals
 #----------------------------------------------------------------------------------------
-sapFlowData <- sapFlowData %>% 
+sapFlowData <- sapFlowData %>%
   select (datetime, v.sap.1, v.sap.2, v.sap.3, tree, treatment) %>%
-  group_by (tree, treatment, datetime = cut (datetime, breaks = '1 hour')) %>%
+  group_by (tree, treatment, datetime = cut (datetime, breaks = '15 min')) %>%
   summarise (v.sap.1 = mean (v.sap.1, na.rm = TRUE),
              v.sap.2 = mean (v.sap.2, na.rm = TRUE),
-             v.sap.3 = mean (v.sap.3, na.rm = TRUE)) %>% 
+             v.sap.3 = mean (v.sap.3, na.rm = TRUE)) %>%
   mutate (datetime = as_datetime (datetime)) %>% ungroup ()
 
 # get start and end date of the chilling
 #----------------------------------------------------------------------------------------
-startDate <- criticalDates (group = '5', asDate = TRUE, startOnly = TRUE) 
-endDate   <- criticalDates (group = '5', asDate = TRUE, endOnly   = TRUE)
+startDate1   <- criticalDates (group = '5', asDate = TRUE, startOnly = TRUE) 
+endDate1     <- criticalDates (group = '5', asDate = TRUE, endOnly   = TRUE)
+startDate2   <- as_datetime ('2020-05-29')
+endDate2     <- as_datetime ('2020-07-10')
+seasonEnd    <- as_datetime ('2019-11-01')
+seasonStart2 <- as_datetime ('2020-05-01')
+
+# filter out off-season
+#----------------------------------------------------------------------------------------
+sapFlowData <- 
+  sapFlowData %>% filter (datetime > as_datetime ('2019-05-01')) %>%
+  filter (datetime < as_datetime ('2019-11-01') | datetime > as_datetime ('2020-05-01'))
 
 # add column based on period (e.g., before, during, and after treatment)
 #----------------------------------------------------------------------------------------
-period <- ifelse (sapFlowData [['datetime']] < startDate, 'before', 
-                  ifelse (sapFlowData [['datetime']] > endDate, 'after','during'))
-periodAlt <- ifelse (sapFlowData [['datetime']] < startDate | 
-                       sapFlowData [['datetime']] > endDate,'non-chilling','chilling')
-sapFlowData <- sapFlowData %>% mutate (period, periodAlt)
+sapFlowData [['period']] [sapFlowData [['datetime']] < startDate1] <- 'early1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= startDate1 & 
+                          sapFlowData [['datetime']] <= endDate1] <- 'mid1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= endDate1 & 
+                          sapFlowData [['datetime']] <= as_datetime ('2020-01-01')] <- 'late1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= as_datetime ('2020-01-01') & 
+                          sapFlowData [['datetime']] < startDate2] <- 'early2'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= startDate2 & 
+                            sapFlowData [['datetime']] <= endDate2] <- 'mid2'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= endDate2] <- 'late2'
 
 # calculate mean sap flow velocity and standard deviation by group during the experiment
 #----------------------------------------------------------------------------------------
-sapFlowData %>% group_by (treatment, period) %>% 
-  filter (datetime < as_datetime ('2019-11-01')) %>%
-  summarise (mean.v.sap.1 = mean (v.sap.1, na.rm = TRUE),
-             se.v.sap.1   = se   (v.sap.1),
-             mean.v.sap.2 = mean (v.sap.2, na.rm = TRUE),
-             se.v.sap.2   = se   (v.sap.2),
-             mean.v.sap.3 = mean (v.sap.3, na.rm = TRUE),
-             se.v.sap.3   = se   (v.sap.3))
+# sapFlowData %>% group_by (treatment, period) %>% 
+#   summarise (mean.v.sap.1 = mean (v.sap.1, na.rm = TRUE),
+#              se.v.sap.1   = se   (v.sap.1),
+#              mean.v.sap.2 = mean (v.sap.2, na.rm = TRUE),
+#              se.v.sap.2   = se   (v.sap.2),
+#              mean.v.sap.3 = mean (v.sap.3, na.rm = TRUE),
+#              se.v.sap.3   = se   (v.sap.3))
 
-# reduce datetime to nearest 15 minute interval
+# use mid-day rates only (e.g., 11-14h)
 #----------------------------------------------------------------------------------------
-sapFlowData <- sapFlowData  %>% mutate (date = as_date (datetime))
+middaySapFlowData <- sapFlowData %>% 
+  filter (hour (datetime) >= 11 & hour (datetime) <= 14) %>%
+  mutate (date = as_date (datetime))
 
-# average sap data over 15-minute intervals
+# get midday median value of sapflow and replace negative values by NA
 #----------------------------------------------------------------------------------------
-dailySapFlowData <- sapFlowData %>% 
-  group_by (tree, treatment, date) %>%
-  summarise (v.sap.90th.1 = quantile (v.sap.1, 0.95, na.rm = TRUE),
-             v.sap.90th.2 = quantile (v.sap.2, 0.95, na.rm = TRUE),
-             v.sap.90th.3 = quantile (v.sap.3, 0.95, na.rm = TRUE)) %>% 
+middaySapFlowData <- middaySapFlowData %>% 
+  group_by (tree, treatment, date, period) %>%
+  summarise (v.sap.1 = median (v.sap.1, na.rm = TRUE),
+             v.sap.2 = median (v.sap.2, na.rm = TRUE),
+             v.sap.3 = median (v.sap.3, na.rm = TRUE)) %>% 
   ungroup ()
 
 # wrangle data into long format
 #----------------------------------------------------------------------------------------
-temp <- pivot_longer (data = dailySapFlowData, 
-                      cols = c (v.sap.90th.1, v.sap.90th.2, v.sap.90th.3), 
-                      names_to = 'depth', names_prefix = 'v.sap.90th.', 
+temp <- pivot_longer (data = middaySapFlowData, 
+                      cols = c (v.sap.1, v.sap.2, v.sap.3), 
+                      names_to = 'depth', names_prefix = 'v.sap.', 
                       values_to = 'v.sap')
 
-# add column based on period (e.g., before, during, and after treatment)
+# filter for only depth with best signal for each tree
 #----------------------------------------------------------------------------------------
-period <- ifelse (temp [['date']] < as_date (startDate), 'before', 
-                  ifelse (temp [['date']] > as_date (endDate), 'after','during'))
-periodAlt <- ifelse (temp [['date']] < as_date (startDate) | 
-                     temp [['date']] > as_date (endDate),'non-chilling','chilling')
-temp <- temp %>% mutate (period, periodAlt)
+temp <- temp %>% 
+  filter ((tree == 1 & depth == 3) |
+          (tree == 2 & depth == 3) | 
+          (tree == 3 & depth == 3) | 
+          (tree == 4 & depth == 3) | 
+          (tree == 5 & depth == 2) | 
+          (tree == 6 & depth == 2) | 
+          (tree == 7 & depth == 3) | 
+          (tree == 8 & depth == 2)) %>%
+  select (-depth)
+
+# exclude tree 7 in 2020, because the sensor broke
+#----------------------------------------------------------------------------------------
+temp <- temp %>% filter (!(tree == 7 & date > as_date ('2020-01-01')))
+
+# filter out 2020 late period 
+#----------------------------------------------------------------------------------------
+temp <- temp %>% filter (period != 'late2')
 
 # convert variable to factors
 #----------------------------------------------------------------------------------------
 temp <- temp %>%
-  mutate (datetime  = factor (date),
+  mutate (date      = factor (date),
           tree      = factor (tree),
-          treatment = factor (treatment, levels = c (5, 1)),
-          period    = factor (period,    levels = c ('during','after','before')),
-          periodAlt = factor (periodAlt, levels = c ('chilling','non-chilling')),
-          depth     = factor (depth,     levels = 1:3))
+          treatment = factor (treatment, levels = c (1, 5)),
+          period    = factor (period,    levels = c ('mid1','early2','late2','mid2',
+                                                     'early1','late1')))
 
 # fit mixed effects model to wood sugar concentrations with tree and height as random 
 # effects to account for idiosyncratic differences due to factors such as variations 
 # in exact azimuth or systematic difference between trees
 #----------------------------------------------------------------------------------------
-M1 <- lmer (formula = v.sap ~ (1 | tree) + depth +  date + period:treatment, 
+M1 <- lmer (formula = v.sap ~ (1 | tree) + period + period:treatment, 
             data = temp,
             REML = TRUE)
 summary (M1)
 
 for (treeID in 1:8) {
-  for (iDepth in 1:3) { 
-    plot (x = select (filter (temp, tree == treeID & depth == iDepth), date) [[1]],
-          y = select (filter (temp, tree == treeID & depth == iDepth), v.sap) [[1]], typ ='l',
-          las = 1)
-  }
+    plot (x = select (filter (temp, tree == treeID), date) [[1]],
+          y = select (filter (temp, tree == treeID), v.sap) [[1]], typ ='l',
+          las = 1,
+          main = paste0 ('Tree ',treeID))
 }
 #========================================================================================
