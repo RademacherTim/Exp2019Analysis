@@ -29,7 +29,7 @@ layout (matrix (1:8, nrow = 2))
 for (t in c (1:6,8,7)) {
   con <- respDataExp2019 [['tree']] == t & respDataExp2019 [['chamber']] == 1
   plot (x = respDataExp2019 [['datetime']] [con],
-        y = respDataExp2019 [['flux.raw']] [con], typ = 'l', las = 1,
+        y = respDataExp2019 [['flux.raw']] [con], typ = 'l', las = 1, lty = 3,
         xlab = 'date', col = tColours [['colour']] [respDataExp2019 [['treatment']] [con]], 
         ylim = c (0, 4),
         ylab = expression (paste ('respiration rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
@@ -38,7 +38,7 @@ for (t in c (1:6,8,7)) {
     lines (x = respDataExp2019 [['datetime']] [con],
            y = respDataExp2019 [['flux.raw']] [con], 
            col = tColours [['colour']] [respDataExp2019 [['treatment']] [con]],
-           lty = c)
+           lty = 4-c)
   }
   
   # Add critical dates
@@ -51,7 +51,7 @@ for (t in c (1:6,8,7)) {
 }
 # add a legend to the last panel
 #----------------------------------------------------------------------------------------
-legend (x = as_datetime ('2019-08-01'), y = 4, box.lty = 0, lty = 1:3, col = tColours [['colour']] [5], 
+legend (x = as_datetime ('2019-08-01'), y = 4, box.lty = 0, lty = 3:1, col = tColours [['colour']] [5], 
         legend = c ('0.5 m','1.5 m','2.5 m'))
 
 # plot respiration versus air temperature for control only
@@ -108,30 +108,48 @@ summaryRespData <- respDataExp2019 %>%
   group_by (date, treatment, chamber) %>%
   summarise (meanRawResp = mean (flux.raw, na.rm = TRUE),
              sdRawResp = sd (flux.raw, na.rm = TRUE),
-             seRawResp = se (flux.raw)) 
+             seRawResp = se (flux.raw),
+             .groups = 'keep') 
 
 # plot respiration in control, compressed and chilled treatments for 2018 only
 #----------------------------------------------------------------------------------------
-par (mar = c (5, 5, 1, 1))
-layout (matrix (1:2, nrow = 1, byrow = TRUE))
+png (filename = './fig/stemCO2EffluxByTreatment.png', width = 700, height = 300)
+layout (matrix (1:2, nrow = 1, byrow = TRUE), widths = c (1.2, 1))
 for (t in c (1, 5)) {
+  if (t == 1) {
+    par (mar = c (3, 5, 1, 1))
+  } else {
+    par (mar = c (3, 1, 1, 1))
+  }
   con <- summaryRespData [['treatment']] == t & 
     summaryRespData [['chamber']] == 1 & 
     summaryRespData [['date']] < as_date ("2020-01-01")
   plot (x = summaryRespData [['date']] [con],
-        y = summaryRespData [['meanRawResp']] [con], typ = 'l', las = 1,
-        xlab = 'date',
-        ylab = expression (paste ('respiration rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')),
+        y = summaryRespData [['meanRawResp']] [con], typ = 'l', las = 1, lwd = 2,
+        xlab = '',
+        ylab = ifelse (t == 1, 
+                       expression (paste ('stem ', CO[2], ' efflux (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')),
+                       ''),
         col = 'white', 
         xlim = c (as_date ('2019-04-01'), as_date ('2019-11-10')),
-        ylim = c (0, 3.5))
+        ylim = c (0, 3.5), axes = FALSE)
+  axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
+                          as_date ('2019-07-01'), as_date ('2019-08-01'),
+                          as_date ('2019-09-01'), as_date ('2019-10-01'),
+                          as_date ('2019-11-01')), 
+        labels = c ('May','Jun','Jul','Aug','Sep','Oct','Nov'))
+  if (t == 1) {
+    axis (side = 2, at = seq (0, 3.5, by = 0.5), las = 1)
+  } else {
+    axis (side = 2, at = seq (0, 3.5, by = 0.5), las = 1, labels = rep ('', 8))
+  }
   for (c in 1:3) {
     con <- summaryRespData [['treatment']] == t & 
       summaryRespData [['chamber']] == c & 
       summaryRespData [['date']]  < as_date ("2020-01-01")
     lines (x = summaryRespData [['date']] [con],
            y = summaryRespData [['meanRawResp']] [con], 
-           col = tColours [['colour']] [t],
+           col = tColours [['colour']] [t], lwd = 2,
            lty = ifelse (c == 1, 3, ifelse (c == 2, 2, 1)))
     # add standard error
     polygon (x = c (summaryRespData [['date']] [con], rev (summaryRespData [['date']] [con])),
@@ -142,20 +160,20 @@ for (t in c (1, 5)) {
   
   # Add critical dates
   #--------------------------------------------------------------------------------------
-  res <- criticalDates (group = ifelse (t == 1, 'control', 'chilled'), asDate = TRUE)
+  res <- criticalDates (group = 'chilled', asDate = TRUE)
   
   # Add tree panel descriptor
   #--------------------------------------------------------------------------------------
-  if (t == 1) {
-    text <- 'control'
-  } else if (t == 4) {
-    text <- 'compressed'
-  } else if (t == 5) {
-    text <- 'chilled'
-  }
-  text (x = as_date ('2019-10-05'), y = 3.3, labels = text, cex = 2)
+  #if (t == 1) {
+  #  text <- 'control'
+  #} else if (t == 4) {
+  #  text <- 'compressed'
+  #} else if (t == 5) {
+  #  text <- 'chilled'
+  #}
+  #text (x = as_date ('2019-10-05'), y = 3.3, labels = text, cex = 2)
 }
-legend (x = as_date ('2019-03-25'), y = 3.5, box.lty = 0, lty = 1:3, col = tColours [['colour']] [5], 
-        legend = c ('2.5 m','1.5 m','0.5 m'), bg = 'transparent')
-
+#legend (x = as_date ('2019-03-25'), y = 3.5, box.lty = 0, lty = 1:3, col = tColours [['colour']] [5], 
+#        legend = c ('2.5 m','1.5 m','0.5 m'), bg = 'transparent')
+dev.off ()
 #========================================================================================
