@@ -8,6 +8,7 @@
 # load dependencies
 #----------------------------------------------------------------------------------------
 if (!existsFunction ('scam')) library ('scam')
+if (!existsFunction ('%>%'))  library ('tidyverse')
 
 # read in the ring width data that Patrick prepared 
 #----------------------------------------------------------------------------------------
@@ -105,7 +106,7 @@ for (t in c (2, 4, 6, 7)) {
     plot (x = tmpData [['sample.date']],
           y = tmpData [['ring.width']], typ = 'p', col = tColours [['colour']] [5],
           xlab = '', ylab = expression (paste ('ring width (',mu,m,')', sep = '')), las = 1, 
-          xlim = c (as_date ('2019-04-01'), as_date ('2019-11-15')),
+          xlim = c (as_date ('2019-04-01'), as_date ('2019-10-15')),
           ylim = c (0, maxY), axes = FALSE)
     if (h != 1) { 
       axis (side = 1, at = c (as_date ('2019-04-01'), as_date ('2019-05-01'), as_date ('2019-06-01'), 
