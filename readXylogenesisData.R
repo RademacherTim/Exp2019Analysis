@@ -6,12 +6,15 @@
 
 # load dependencies 
 #----------------------------------------------------------------------------------------
-library ('readr')
-library ('readxl')
-library ('tidyr')
-library ('tibble')
-library ('dplyr')
-library ('lubridate')
+if (!exists ('read_excel'))   library ('readxl')
+if (!exists ('pivot_longer')) library ('tidyr')
+if (!exists ('tibble'))       library ('tibble')
+if (!exists ('filter'))       library ('dplyr')
+if (!exists ('as_date'))      library ('lubridate')
+
+# get original working directory
+#----------------------------------------------------------------------------------------
+originalDir <- getwd ()
 
 # set working directory
 #----------------------------------------------------------------------------------------
@@ -36,8 +39,21 @@ xyloData <- xyloData %>% filter (!is.na (ring.width))
 # convert tree.id, add treatment column to the tibble, and convert sample.date to date type
 #----------------------------------------------------------------------------------------
 xyloData <- xyloData %>% 
-  mutate (tree.id = as.numeric (substr (tree.id, 3, 3)) + 1900) %>%
-  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 'control','cihlled')) %>%
-  mutate (sample.date = as_date (sample.date))
+  mutate (tree.id = as.numeric (substr (tree.id, 3, 3)) + 1900,
+          treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 'control','chilled'),
+          sample.date = as_date (sample.date),
+          sample.doy  = yday (sample.date),
+          sample.height = ifelse (sample.height == 1, 0.5, 
+                                  ifelse (sample.height == 2, 1.5, 
+                                          ifelse (sample.height == 3, 2.5, 4.0)))) %>%
+  rename (year = Year)
+
+# change sample.doy for sample taken in 2020 to 365, as the 2019 ring was already fully formed 
+#----------------------------------------------------------------------------------------
+xyloData [['sample.doy']] [xyloData [['sample.date']] == as_date ('2020-08-04')] <- 365
+
+# reset original working directory
+#----------------------------------------------------------------------------------------
+setwd (originalDir)
 
 #========================================================================================

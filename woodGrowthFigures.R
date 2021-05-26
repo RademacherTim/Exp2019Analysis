@@ -5,6 +5,9 @@
 # 1.0 and 2.0m.  
 #----------------------------------------------------------------------------------------
 
+# To-do:
+# - Something is wrong with control 2.5m end of season date.
+
 # load dependencies
 #----------------------------------------------------------------------------------------
 if (!existsFunction ('scam')) library ('scam')
@@ -14,22 +17,32 @@ if (!existsFunction ('%>%'))  library ('tidyverse')
 #----------------------------------------------------------------------------------------
 if (!exists ('xyloData')) source ('readXylogenesisData.R')
 
-# add day of year for the sample date 
+# read in the visual observations
 #----------------------------------------------------------------------------------------
-xyloData <- xyloData %>% mutate (sample.doy = yday (sample.date))
+if (!exists ('visualData')) {
+  visualData <- read_csv (file = './data/visual_wood_anatomy_observations_HF_Exp2019.csv',
+                          col_types = cols ()) 
+}
 
-# make a figure of growth over time for each control tree across sampling height
+# Add growing season dates to the xyloData
+#----------------------------------------------------------------------------------------
+visualData <- visualData %>% 
+  mutate (treatment = ifelse (treatment == 1, 'control', 'chilled')) %>%
+  select (-iadf, -comments)
+xyloData <- merge (xyloData, visualData, by = c ('tree.id','treatment','sample.height')) 
+
+# figure of growth over time for each control tree across sampling height
 #----------------------------------------------------------------------------------------
 layout (matrix (1:16, nrow = 4))
 for (t in c (1, 3, 5, 8)) {
- for (h in 4:1) {
+ for (h in c (4.0, 2.5, 1.5, 0.5)) {
    
    # set margins
    par (mar = c (3, 3, 1, 1))
    
    # select only relevant data
    tmpData <- xyloData %>% 
-     filter (tree.id == (t + 1900) & sample.height == h & Year == 2019) 
+     filter (tree.id == (t + 1900) & sample.height == h & year == 2019) 
    
    # correct sample.doy for the 2020 sample
    tmpData [['sample.doy']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- 365
@@ -74,18 +87,18 @@ for (t in c (1, 3, 5, 8)) {
  }
 }
 
-# make a figure of growth over time for each chilled tree across sampling height
+#figure of growth over time for each chilled tree across sampling height
 #----------------------------------------------------------------------------------------
 layout (matrix (1:16, nrow = 4))
 for (t in c (2, 4, 6, 7)) {
-  for (h in 4:1) {
+  for (h in c (4.0, 2.5, 1.5, 0.5)) {
     
     # set margins
     par (mar = c (3, 3, 1, 1))
     
     # select only relevant data
     tmpData <- xyloData %>% 
-      filter (tree.id == (t + 1900) & sample.height == h & Year == 2019) 
+      filter (tree.id == (t + 1900) & sample.height == h & year == 2019) 
     
     # correct sample.doy for the 2020 sample
     tmpData [['sample.doy']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- 365
@@ -129,4 +142,106 @@ for (t in c (2, 4, 6, 7)) {
   }
 }
 
+# figure of average growth over time for chilled and control trees across sampling height
+#----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019ChillingAbsoluteVolumeGrowthDynamics.png', width = 800, height = 700)
+layout (matrix (1:4, nrow = 4), heights = c (1, 1, 1,  1.4))
+for (h in c (4.0, 2.5, 1.5, 0.5)) {
+  
+  # determine panel margins
+  if (h != 0.5) {
+    par (mar = c (1, 6, 1, 1))
+  } else {
+    par (mar = c (5, 6, 1, 1))
+  }
+  
+  # creat plot outline 
+  plot (x = xyloData %>% filter (treatment == 'control', sample.height == h, year == 2019) %>% 
+          select (sample.date) %>% unlist () - 17897, # subtract the integer value of 2019-01-01 from 1970-01-01 origin
+        y = xyloData %>% filter (treatment == 'control', sample.height == h, year == 2019) %>% 
+          select (ring.width) %>% unlist (),
+        xlim = c (120, 365), ylim = c (0, 3600), 
+        axes = FALSE, pch = 19, las = 1, 
+        xlab = ifelse (h != 0.5, '', 'Day of the year'), 
+        ylab = '', 
+        col = 'white') 
+  
+  # add critical dates
+  #--------------------------------------------------------------------------------------
+  res <- abline (v = lubridate::yday (c ('2018-05-29','2018-07-10')), 
+                 col = '#999999', lty = 2, lwd = 1)
+
+  # add axis
+  #--------------------------------------------------------------------------------------
+  if (h != 0.5) {
+    axis (side = 1, at = seq (0, 360, 60), labels = rep ('', 7))
+  } else {
+    axis (side = 1, at = seq (0, 360, 60), cex.axis = 1.4)
+  }  
+  axis (side = 2, at = seq (0, 3000, 1000), labels = 0:3, las = 1, 
+        cex.axis = 1.4)
+  mtext (side = 2, line = 4, 
+         text = expression (paste ('Volume growth (mm)',sep = '')), 
+         at = 2000, cex = 0.7)
+  
+  # add monotonic GAM for treatment 
+  for (t in c ('control', 'chilled')) {
+    
+    # get treatment specific data
+    treatmentData <- xyloData %>% 
+      filter (treatment == t & sample.height == h) %>% 
+      arrange (by = sample.date)
+    
+    # only retain the 2019 ring widths
+    treatmentData <- treatmentData %>% 
+      filter (year == 2019)
+    
+    # Fit general additive model to growth data
+    fit.gam <- scam::scam (ring.width ~ s (sample.doy, k = 8, bs = 'mpi'), 
+                           data   = treatmentData, 
+                           family = quasipoisson)
+    
+    # add confidence interval for the model
+    m <- predict (fit.gam, newdata = data.frame (sample.doy = 1:365), type = 'link', se.fit = TRUE) 
+    polygon (x = c (150:365, 365:150), 
+             y = exp (c (m$fit [150:365] + m$se.fit [150:365], 
+                         rev (m$fit [150:365] - m$se.fit [150:365]))), 
+             lty = 0,
+             col = addOpacity (tColours [['colour']] [tColours [['treatment']] == t], 0.3))
+    
+    # add treatment mean behaviour
+    lines (x = 1:365, y = exp (m$fit), col = tColours [['colour']] [tColours [['treatment']] == t], lwd = 2,
+           lty = ifelse (t == 'control', 1, 2))
+    
+    # add mean and standard error for start of the growing season
+    arrows (x0 = mean (treatmentData [['start.of.season.doy']]) - 
+                 se (treatmentData [['start.of.season.doy']]),
+            x1 = mean (treatmentData [['start.of.season.doy']]) + 
+                 se (treatmentData [['start.of.season.doy']]), 
+            y0 = 3300 + ifelse (t == 'control', -100, 100), 
+            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            length = 0, angle = 90, code = 3, lwd = 2)
+    points (x = mean (treatmentData [['start.of.season.doy']]), 
+            y = 3300 + ifelse (t == 'control', -100, 100), 
+            pch = ifelse (t == 'control', 19, 23), 
+            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            cex = 2.5, bg = 'white', lwd = 2)
+    
+    # add mean and standard error for end of the growing season
+    arrows (x0 = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE) -
+              se (treatmentData [['end.of.season.doy']]),
+            x1 = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE) +
+              se (treatmentData [['end.of.season.doy']]),
+            y0 = 3300 + ifelse (t == 1, -100, 100),
+            col = tColours [['colour']] [tColours [['treatment']] == t],
+            length = 0, angle = 90, code = 3, lwd = 2)
+    points (x = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE),
+            y = 3300 + ifelse (t == 1, -100, 100),
+            pch = ifelse (t == 1, 19, 23),
+            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            cex = 2.5, bg = 'white', lwd = 2)
+  } # end treatment loop
+    
+} # end sample height loop
+dev.off ()
 #========================================================================================
