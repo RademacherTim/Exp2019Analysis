@@ -19,7 +19,7 @@ tempData <- tempData  %>%
   group_by (datetime = cut (datetime, breaks = '15 min')) %>% 
   summarise (u.battery      = mean (u.battery,  na.rm = TRUE),
              t.panel        = mean (t.panel,    na.rm = TRUE),
-             t.oak.1p5m     = mean (t.oak.1p5m, na.rm = TRUE),
+             t.oak.99.1p5m  = mean (t.oak.1p5m, na.rm = TRUE),
              t.acer.02.2p0m = mean (t.acer.02.2p0m , na.rm = TRUE),
              t.acer.02.1p0m = mean (t.acer.02.1p0m , na.rm = TRUE),
              t.acer.04.2p0m = mean (t.acer.04.2p0m , na.rm = TRUE),
@@ -119,7 +119,7 @@ if (LOCAL) {
 # add the 15 minutes air temperature data, and sapflow sensor derived stem temperatures
 #----------------------------------------------------------------------------------------
 tempData <- right_join (addTempData, tempData, by = 'datetime', all.x = TRUE) %>% 
-  right_join (tmp, by = 'datetime') %>% rename (t.air.1p5m = airt)
+  right_join (tmp, by = 'datetime') %>% rename (t.air.99.1p5m = airt)
 
 # get rid of the data after the 3rd of November, when measurements stopped 
 #----------------------------------------------------------------------------------------
@@ -128,6 +128,28 @@ tempData <- tempData %>% filter (datetime < as_datetime ('2019-11-03'))
 # select only relevant temperature variables
 #----------------------------------------------------------------------------------------
 tempData <- tempData %>% select (-u.battery, -t.panel, -t.misc1, -t.misc2)
+
+# pivot data into long format
+#----------------------------------------------------------------------------------------
+tempData <- tempData %>% 
+  pivot_longer (cols = !datetime, 
+                names_to = c ('species','tree','height'), 
+                names_pattern = '(.*)\\.(.*)\\.(.*)', 
+                names_prefix = 't.',
+                values_to = 'temp') %>% 
+  mutate (tree = as.numeric (tree)) %>%
+  mutate (height = ifelse (height == '1p0m', 1.0, ifelse (height == '1p5m', 1.5, 2.0)))
+
+# delete empty values 
+#----------------------------------------------------------------------------------------
+tempData <- tempData %>% 
+  filter (!is.nan (temp), !is.na (temp))
+
+# add treatment 
+#----------------------------------------------------------------------------------------
+tempData <- tempData %>% 
+  mutate (treatment = ifelse (tree %in% c (1, 3, 5, 8), 'control',
+                              ifelse (tree %in% c (2, 4, 6,7), 'chilled', 'air'))) 
 
 # clean up 
 #----------------------------------------------------------------------------------------
