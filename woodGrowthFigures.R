@@ -213,7 +213,8 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
     lines (x = 1:365, y = exp (m$fit), 
            col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
            lwd = 2,
-           lty = ifelse (t == 'control', 1, 2))
+           lty = ifelse (h == 0.5, 3, 
+                         ifelse (h == 1.5, 2, ifelse (h == 2.5, 1, 4))))
     
     # add mean and standard error for start of the growing season
     arrows (x0 = mean (treatmentData [['start.of.season.doy']]) - 

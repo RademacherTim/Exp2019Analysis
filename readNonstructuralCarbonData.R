@@ -444,8 +444,8 @@ rootData2019   <- dataExp2019 [substr (dataExp2019 [['Tissue']], 1, 4) == 'Root'
 #--------------------------------------------------------------------------------------
 rootData2019 <- rootData2019 %>% group_by (treeID, treatment, DateOfSampleCollection) %>% 
   summarise (ConcentrationSugarPerDW  = mean (ConcentrationSugarPerDW,  na.rm = TRUE),
-             ConcentrationStarchPerDW = mean (ConcentrationStarchPerDW, na.rm = TRUE)) %>% 
-  ungroup ()
+             ConcentrationStarchPerDW = mean (ConcentrationStarchPerDW, na.rm = TRUE),
+             .groups = 'drop')
 
 # get the coefficient of variation for lab controls 
 #--------------------------------------------------------------------------------------
@@ -454,19 +454,22 @@ COV <- filter (dataExp2019, substr (SampleID, 1, 7) == 'LCS Oak' |
   group_by (SampleID) %>% 
   select (SampleID, ConcentrationSugarPerDW, ConcentrationStarchPerDW) %>% 
   summarise (covSugar = sd (ConcentrationSugarPerDW) / mean (ConcentrationSugarPerDW),
-             covStarch = sd (ConcentrationStarchPerDW) / mean (ConcentrationStarchPerDW))
+             covStarch = sd (ConcentrationStarchPerDW) / mean (ConcentrationStarchPerDW),
+             .groups = 'keep')
 
 # Get the number of blanks and controls per batch
 #----------------------------------------------------------------------------------------
 temp <- filter (dataExp2019, SampleID == 'B' | SampleID == 'TB') %>% 
   group_by (BatchID, DateOfSugarAnalysis) %>% 
-  summarise (n = sum (SampleID == 'B' | SampleID == 'TB'))
+  summarise (n = sum (SampleID == 'B' | SampleID == 'TB'),
+             .groups = 'keep')
 # range (temp [['n']])
 temp <- filter (dataExp2019, substr (SampleID, 1, 6) == 'REF100' | 
                   substr (SampleID, 1, 3) == 'LCS') %>%
   group_by (BatchID, DateOfSugarAnalysis) %>% 
   summarise (n = sum (substr (SampleID, 1, 6) == 'REF100' | 
-                        substr (SampleID, 1, 3) == 'LCS'))
+                        substr (SampleID, 1, 3) == 'LCS'),
+             .groups = 'keep')
 # temp [['n']]
 
 # switch back to original working directory

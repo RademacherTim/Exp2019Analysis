@@ -113,37 +113,40 @@ summaryRespData <- respDataExp2019 %>%
 
 # plot respiration in control, compressed and chilled treatments for 2018 only
 #----------------------------------------------------------------------------------------
-png (filename = './fig/stemCO2EffluxByTreatment.png', width = 700, height = 300)
-layout (matrix (1:2, nrow = 1, byrow = TRUE), widths = c (1.2, 1))
-for (t in c (1, 5)) {
-  if (t == 1) {
-    par (mar = c (3, 5, 1, 1))
+png (filename = './fig/Exp2019stemCO2EffluxByTreatment.png', width = 400, height = 600)
+layout (matrix (1:3, nrow = 3, byrow = TRUE), heights = c (1, 1, 1.15))
+for (c in 3:1) {
+  if (c != 1) {
+    par (mar = c (1, 5, 1, 1))
   } else {
-    par (mar = c (3, 1, 1, 1))
+    par (mar = c (3, 5, 1, 1))
   }
-  con <- summaryRespData [['treatment']] == t & 
+  con <- summaryRespData [['treatment']] == 1 & 
     summaryRespData [['chamber']] == 1 & 
     summaryRespData [['date']] < as_date ("2020-01-01")
   plot (x = summaryRespData [['date']] [con],
         y = summaryRespData [['meanRawResp']] [con], typ = 'l', las = 1, lwd = 2,
         xlab = '',
-        ylab = ifelse (t == 1, 
-                       expression (paste ('stem ', CO[2], ' efflux (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')),
-                       ''),
+        ylab = expression (paste ('stem ', CO[2], ' efflux (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')),
         col = 'white', 
-        xlim = c (as_date ('2019-04-01'), as_date ('2019-11-10')),
+        xlim = c (as_date ('2019-04-21'), as_date ('2019-11-10')),
         ylim = c (0, 3.5), axes = FALSE)
-  axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
-                          as_date ('2019-07-01'), as_date ('2019-08-01'),
-                          as_date ('2019-09-01'), as_date ('2019-10-01'),
-                          as_date ('2019-11-01')), 
-        labels = c ('May','Jun','Jul','Aug','Sep','Oct','Nov'))
-  if (t == 1) {
-    axis (side = 2, at = seq (0, 3.5, by = 0.5), las = 1)
+  if (c != 1) {
+    axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
+                            as_date ('2019-07-01'), as_date ('2019-08-01'),
+                            as_date ('2019-09-01'), as_date ('2019-10-01'),
+                            as_date ('2019-11-01')), 
+          labels = rep ('', 7))
   } else {
-    axis (side = 2, at = seq (0, 3.5, by = 0.5), las = 1, labels = rep ('', 8))
+    axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
+                            as_date ('2019-07-01'), as_date ('2019-08-01'),
+                            as_date ('2019-09-01'), as_date ('2019-10-01'),
+                            as_date ('2019-11-01')), 
+          labels = c ('May','Jun','Jul','Aug','Sep','Oct','Nov'))
   }
-  for (c in 1:3) {
+  axis (side = 2, at = seq (0, 3.5, by = 1.0), las = 1)
+  
+  for (t in c (1, 5)) {
     con <- summaryRespData [['treatment']] == t & 
       summaryRespData [['chamber']] == c & 
       summaryRespData [['date']]  < as_date ("2020-01-01")
@@ -151,12 +154,12 @@ for (t in c (1, 5)) {
            y = summaryRespData [['meanRawResp']] [con], 
            col = tColours [['colour']] [t], lwd = 2,
            lty = ifelse (c == 1, 3, ifelse (c == 2, 2, 1)))
-    # add standard error
-    polygon (x = c (summaryRespData [['date']] [con], rev (summaryRespData [['date']] [con])),
-             y = c (summaryRespData [['meanRawResp']] [con] + summaryRespData [['seRawResp']] [con],
-                    rev (summaryRespData [['meanRawResp']] [con] - summaryRespData [['seRawResp']] [con])),
-             col = addOpacity (tColours [['colour']] [t], 0.3), lty = 0)
-  }
+      # add standard error
+      polygon (x = c (summaryRespData [['date']] [con], rev (summaryRespData [['date']] [con])),
+               y = c (summaryRespData [['meanRawResp']] [con] + summaryRespData [['seRawResp']] [con],
+                      rev (summaryRespData [['meanRawResp']] [con] - summaryRespData [['seRawResp']] [con])),
+               col = addOpacity (tColours [['colour']] [t], 0.3), lty = 0)
+  } 
   
   # Add critical dates
   #--------------------------------------------------------------------------------------
