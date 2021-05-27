@@ -25,8 +25,9 @@ setwd ('/media/tim/dataDisk/PlantGrowth/data/microcores/woodAnatomy/Exp2019/')
 for (t in 1:8) {
   assign (paste0 ('A0',t), read_excel (path = paste0 ('A0',t,'.xlsx'), 
                                        sheet = paste0 ('A0',t,'.new'), na = 'NA', 
-                                       col_types = rep ('numeric', 61)) %>%
-    pivot_longer (cols = 2:61, names_to = c ('tree.id','sample.height', 'sample.date'), 
+                                       col_types = rep ('numeric', ifelse (t == 2, 61, 61))) %>%
+    pivot_longer (cols = 2:ifelse (t == 2, 61, 61), 
+                  names_to = c ('tree.id','sample.height', 'sample.date'), 
                   names_sep = '_', values_to = 'ring.width'))
 }
 xyloData <- rbind (A01, A02, A03, A04, A05, A06, A07, A08)

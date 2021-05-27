@@ -45,10 +45,10 @@ for (t in c (1, 3, 5, 8)) {
      filter (tree.id == (t + 1900) & sample.height == h & year == 2019) 
    
    # correct sample.doy for the 2020 sample
-   tmpData [['sample.doy']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- 365
+   tmpData [['sample.date']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- as_date ('2019-12-31')
    
    # fit monotonic general additive model to growth data
-   fit.gam <- scam::scam (ring.width ~ s (sample.doy, k = 8, bs = 'mpi'), 
+   fit.gam <- scam::scam (ring.width ~ s (sample.doy, k = 9, bs = 'mpi'), 
                           data   = tmpData, 
                           family = quasipoisson)
    
@@ -64,7 +64,7 @@ for (t in c (1, 3, 5, 8)) {
    plot (x = tmpData [['sample.date']],
          y = tmpData [['ring.width']], typ = 'p', col = tColours [['colour']] [1],
          xlab = '', ylab = expression (paste ('ring width (',mu,m,')', sep = '')), las = 1, 
-         xlim = c (as_date ('2019-04-01'), as_date ('2019-10-15')),
+         xlim = c (as_date ('2019-04-01'), as_date ('2020-01-01')),
          ylim = c (0, maxY), axes = FALSE)
    if (h != 1) { 
      axis (side = 1, at = c (as_date ('2019-04-01'), as_date ('2019-05-01'), as_date ('2019-06-01'), 
@@ -101,7 +101,7 @@ for (t in c (2, 4, 6, 7)) {
       filter (tree.id == (t + 1900) & sample.height == h & year == 2019) 
     
     # correct sample.doy for the 2020 sample
-    tmpData [['sample.doy']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- 365
+    tmpData [['sample.date']] [tmpData [['sample.date']] == as_date ('2020-08-04')] <- as_date ('2019-12-31')
     
     
     # fit monotonic general additive model to growth data
@@ -119,7 +119,7 @@ for (t in c (2, 4, 6, 7)) {
     plot (x = tmpData [['sample.date']],
           y = tmpData [['ring.width']], typ = 'p', col = tColours [['colour']] [5],
           xlab = '', ylab = expression (paste ('ring width (',mu,m,')', sep = '')), las = 1, 
-          xlim = c (as_date ('2019-04-01'), as_date ('2019-10-15')),
+          xlim = c (as_date ('2019-04-01'), as_date ('2019-12-31')),
           ylim = c (0, maxY), axes = FALSE)
     if (h != 1) { 
       axis (side = 1, at = c (as_date ('2019-04-01'), as_date ('2019-05-01'), as_date ('2019-06-01'), 
@@ -145,7 +145,7 @@ for (t in c (2, 4, 6, 7)) {
 # figure of average growth over time for chilled and control trees across sampling height
 #----------------------------------------------------------------------------------------
 png (filename = './fig/Exp2019ChillingAbsoluteVolumeGrowthDynamics.png', width = 800, height = 700)
-layout (matrix (1:4, nrow = 4), heights = c (1, 1, 1,  1.4))
+layout (matrix (1:4, nrow = 4), heights = c (1, 1, 1,  1.35))
 for (h in c (4.0, 2.5, 1.5, 0.5)) {
   
   # determine panel margins
@@ -207,38 +207,40 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
              y = exp (c (m$fit [150:365] + m$se.fit [150:365], 
                          rev (m$fit [150:365] - m$se.fit [150:365]))), 
              lty = 0,
-             col = addOpacity (tColours [['colour']] [tColours [['treatment']] == t], 0.3))
+             col = addOpacity (tColours [['colour']] [ifelse (t == 'control',1,5)], 0.3))
     
     # add treatment mean behaviour
-    lines (x = 1:365, y = exp (m$fit), col = tColours [['colour']] [tColours [['treatment']] == t], lwd = 2,
+    lines (x = 1:365, y = exp (m$fit), 
+           col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
+           lwd = 2,
            lty = ifelse (t == 'control', 1, 2))
     
     # add mean and standard error for start of the growing season
     arrows (x0 = mean (treatmentData [['start.of.season.doy']]) - 
-                 se (treatmentData [['start.of.season.doy']]),
+                 sd (treatmentData [['start.of.season.doy']]),
             x1 = mean (treatmentData [['start.of.season.doy']]) + 
-                 se (treatmentData [['start.of.season.doy']]), 
+                 sd (treatmentData [['start.of.season.doy']]), 
             y0 = 3300 + ifelse (t == 'control', -100, 100), 
-            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             length = 0, angle = 90, code = 3, lwd = 2)
     points (x = mean (treatmentData [['start.of.season.doy']]), 
             y = 3300 + ifelse (t == 'control', -100, 100), 
             pch = ifelse (t == 'control', 19, 23), 
-            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
     
     # add mean and standard error for end of the growing season
     arrows (x0 = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE) -
-              se (treatmentData [['end.of.season.doy']]),
+              sd (treatmentData [['end.of.season.doy']], na.rm = TRUE),
             x1 = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE) +
-              se (treatmentData [['end.of.season.doy']]),
-            y0 = 3300 + ifelse (t == 1, -100, 100),
-            col = tColours [['colour']] [tColours [['treatment']] == t],
+              sd (treatmentData [['end.of.season.doy']], na.rm = TRUE),
+            y0 = 3300 + ifelse (t == 'control', -100, 100),
+            col = tColours [['colour']] [ifelse (t == 'control',1,5)],
             length = 0, angle = 90, code = 3, lwd = 2)
     points (x = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE),
-            y = 3300 + ifelse (t == 1, -100, 100),
-            pch = ifelse (t == 1, 19, 23),
-            col = tColours [['colour']] [tColours [['treatment']] == t], 
+            y = 3300 + ifelse (t == 'control', -100, 100),
+            pch = ifelse (t == 'control', 19, 23),
+            col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
   } # end treatment loop
     
