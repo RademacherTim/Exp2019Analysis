@@ -108,7 +108,7 @@ summaryDataStem <- stemData2019 %>%
 # plot the 2019 stem sugar concentration data by treatment
 #----------------------------------------------------------------------------------------
 png (filename = './fig/Exp2019stemSugarConcentrationByTreatment.png', width = 400, height = 600)
-layout (matrix (1:3, nrow = 3, byrow = TRUE), widths = c (1, 1, 1.15))
+layout (matrix (1:3, nrow = 3, byrow = TRUE), heights = c (1, 1, 1.15))
 for (h in 3:1) {
   if (h != 1) {
     par (mar = c (1, 5, 1, 1))
@@ -163,7 +163,7 @@ dev.off ()
 # plot the 2019 stem starch concentration data by treatment
 #----------------------------------------------------------------------------------------
 png (filename = './fig/Exp2019stemStarchConcentrationByTreatment.png', width = 400, height = 600)
-layout (matrix (1:3, nrow = 3, byrow = TRUE), widths = c (1, 1, 1.15))
+layout (matrix (1:3, nrow = 3, byrow = TRUE), heights = c (1, 1, 1.15))
 for (h in 3:1) {
   if (h != 1) {
     par (mar = c (1, 5, 1, 1))
@@ -313,7 +313,7 @@ summaryDataPhloem <- phloemData2019 %>%
 # plot the 2019 phloem sugar concentration data by treatment
 #----------------------------------------------------------------------------------------
 png (filename = './fig/Exp2019phloemSugarConcentrationByTreatment.png', width = 400, height = 600)
-layout (matrix (1:3, nrow = 3, byrow = TRUE), widths = c (1, 1, 1.15))
+layout (matrix (1:3, nrow = 3, byrow = TRUE), heights = c (1, 1, 1.15))
 for (h in 3:1) {
   if (h != 1) {
     par (mar = c (1, 5, 1, 1))
@@ -366,8 +366,8 @@ dev.off ()
 
 # plot the 2019 phloem starch concentration data by treatment
 #----------------------------------------------------------------------------------------
-png (filename = './fig/Exp2019phloemStarchConcentrationByTreatment.png', width = 700, height = 300)
-layout (matrix (1:3, nrow = 3, byrow = TRUE), widths = c (1, 1, 1.15))
+png (filename = './fig/Exp2019phloemStarchConcentrationByTreatment.png', width = 400, height = 600)
+layout (matrix (1:3, nrow = 3, byrow = TRUE), heights = c (1, 1, 1.15))
 for (h in 3:1) {
   if (h != 1) {
     par (mar = c (1, 5, 1, 1))
@@ -380,7 +380,7 @@ for (h in 3:1) {
   plot (x = summaryDataPhloem [['DateOfSampleCollection']] [con],
         y = summaryDataPhloem [['meanStarch']] [con], 
         typ = 'l', xlab = '', 
-        ylab = 'Phloem sugar concentration (% dry weight)', las = 1,
+        ylab = 'Phloem starch concentration (% dry weight)', las = 1,
         xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
   if (h == 1) {
@@ -519,7 +519,7 @@ dev.off ()
 
 # plot the 2019 leaf starch concentration data by treatment
 #----------------------------------------------------------------------------------------
-png (filename = './fig/Exp2019stemStarchConcentrationByTreatment.png', width = 400, height = 240)
+png (filename = './fig/Exp2019leafStarchConcentrationByTreatment.png', width = 400, height = 240)
 par (mfrow = c (1, 1))
 par (mar = c (3, 5, 1, 1))
 
@@ -666,7 +666,7 @@ con <- summaryDataRoot [['treatment']] == 1 &
 plot (x = summaryDataRoot [['DateOfSampleCollection']] [con],
       y = summaryDataRoot [['meanStarch']] [con], 
       typ = 'l', xlab = '', 
-      ylab = 'Root sugar concentration (% dry weight)', las = 1,
+      ylab = 'Root starch concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
       ylim = c (0, 8), col = 'white', axes = FALSE)
 axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
