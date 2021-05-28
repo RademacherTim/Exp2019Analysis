@@ -1,7 +1,13 @@
 #========================================================================================
-# script to plot nonstructural carbon data from the 2019 chilling experiment on red maple
+# Script to plot nonstructural carbon data from the 2019 chilling experiment on red maple
 # at Harvard Forest. 
 #----------------------------------------------------------------------------------------
+
+# Load dependencies
+#----------------------------------------------------------------------------------------
+if (!existsFunction ('read_excel'))  library ('readxl')
+if (!existsFunction ('%>%'))         library ('tidyverse')
+if (!existsFunction ('as_datetime')) library ('lubridate')
 
 # source colour schemes and ploting functions
 #----------------------------------------------------------------------------------------
@@ -327,7 +333,7 @@ for (h in 3:1) {
         y = summaryDataPhloem [['meanSugar']] [con], 
         typ = 'l', xlab = '', 
         ylab = 'Phloem sugar concentration (% dry weight)', las = 1,
-        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
+        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
   if (h == 1) {
     axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
@@ -381,7 +387,7 @@ for (h in 3:1) {
         y = summaryDataPhloem [['meanStarch']] [con], 
         typ = 'l', xlab = '', 
         ylab = 'Phloem starch concentration (% dry weight)', las = 1,
-        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
+        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
   if (h == 1) {
     axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
@@ -466,7 +472,38 @@ for (t in c (1,3,5,8,2,4,6,7)) {
   
 }
 
-# summarise the data by treatment and sampling height
+# Read leaf phenology measurements to add them to the leaf soluble sugar figure
+#----------------------------------------------------------------------------------------
+# Read John O'Keefe's long-term observations for red maple (ACRU), red oak (QURU), and 
+# white pine (PIST) from the Harvard Forest Data Archive
+#----------------------------------------------------------------------------------------
+springHF <- read_csv (url ('https://harvardforest.fas.harvard.edu/data/p00/hf003/hf003-05-spring-mean-ind.csv'),
+                      col_types = cols ()) %>% filter (species =='ACRU')
+fallHF <- read_csv (url ('https://harvardforest.fas.harvard.edu/data/p00/hf003/hf003-07-fall-mean-ind.csv'),
+                    col_types = cols ()) %>% filter (species == 'ACRU')
+leafPhenology <- left_join (x = springHF, y = fallHF, by = c ('year','tree.id','species'))
+leafPhenology <- add_column (leafPhenology, study = 'Obs', treatment = 1, .before = 1) %>%
+  add_column (comments = NA, contributor = 'JOK')
+leafPhenology [['species']] [leafPhenology [['species']] == 'ACRU'] <- "Acer rubrum"
+
+# Read and join Tim Rademacher's observations from spreadsheet to leafPhenology
+#----------------------------------------------------------------------------------------
+tmp <- add_column (readxl::read_excel (path = '/media/tim/dataDisk/PlantGrowth/data/leafPhenology/TimRademacherData/leafPhenologySpringAndFallHavardForest2017-2019.xlsx'),
+                   contributor = 'TR')
+leafPhenology <- rbind (leafPhenology,
+                        tmp)
+
+# summarise the leaf phenology data for by contributor and treatment
+#----------------------------------------------------------------------------------------
+summaryPhenology <- leafPhenology %>% filter (year == 2019) %>% 
+  group_by (study, treatment) %>% 
+  summarise (mean.bb.doy = mean (bb.doy, na.rm = TRUE),
+             sd.bb.doy   = sd   (bb.doy, na.rm = TRUE),
+             mean.lf.doy = mean (lf.doy, na.rm = TRUE),
+             sd.lf.doy   = sd   (lf.doy, na.rm = TRUE), 
+             .groups = 'keep')
+
+# summarise the nonstructural carbon data for leaves by treatment
 #----------------------------------------------------------------------------------------
 summaryDataLeaves <- leafData2019 %>% 
   group_by (DateOfSampleCollection, treatment) %>% 
@@ -490,8 +527,8 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       y = summaryDataLeaves [['meanSugar']] [con], 
       typ = 'l', xlab = '', 
       ylab = 'Leaf sugar concentration (% dry weight)', las = 1,
-      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
-      ylim = c (0, 8), col = 'white', axes = FALSE)
+      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
+      ylim = c (0, 9), col = 'white', axes = FALSE)
 axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
                         as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
                         as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
@@ -510,11 +547,50 @@ for (t in c (1, 5)) {
          y = summaryDataLeaves [['meanSugar']] [con], 
          lty = ifelse (h == 1, 3, ifelse (h == 2, 2, 1)), 
          lwd = 2, col = tColours [['colour']] [t])
-}
+  
+  
+  # add average leaf phenology of the various to the plot, starting with bud break
+  #--------------------------------------------------------------------------------------
+  con <- summaryPhenology [['treatment']] == t & summaryPhenology [['study']] == 'Exp'
+  arrows (x0 = as_datetime ((summaryPhenology [['mean.bb.doy']] [con] - 
+                               summaryPhenology [['sd.bb.doy']] [con])*60*60*24, 
+                            origin = '2019-01-01'),
+          x1 = as_datetime ((summaryPhenology [['mean.bb.doy']] [con] + 
+                               summaryPhenology [['sd.bb.doy']] [con])*60*60*24, 
+                            origin = '2019-01-01'),
+          y0 = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          col = tColours [['colour']] [ifelse (t == 1, 1, 5)],
+          length = 0, angle = 90, code = 3, lwd = 2)
+  points (x = as_datetime (summaryPhenology [['mean.bb.doy']] [con]*60*60*24, 
+                           origin = '2019-01-01'),
+          y = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          pch = ifelse (t == 1, 19, 23),
+          col = tColours [['colour']] [ifelse (t == 1, 1, 5)], 
+          cex = 1.5, bg = 'white', lwd = 2)
+  
+  # add leaf fall
+  #--------------------------------------------------------------------------------------
+  arrows (x0 = as_datetime ((summaryPhenology [['mean.lf.doy']] [con] - 
+                               summaryPhenology [['sd.lf.doy']] [con])*60*60*24, 
+                            origin = '2019-01-01'),
+          x1 = as_datetime ((summaryPhenology [['mean.lf.doy']] [con] + 
+                               summaryPhenology [['sd.lf.doy']] [con])*60*60*24, 
+                            origin = '2019-01-01'),
+          y0 = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          col = tColours [['colour']] [ifelse (t == 1, 1, 5)],
+          length = 0, angle = 90, code = 3, lwd = 2)
+  points (x = as_datetime (summaryPhenology [['mean.lf.doy']] [con]*60*60*24, 
+                           origin = '2019-01-01'),
+          y = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          pch = ifelse (t == 1, 19, 23),
+          col = tColours [['colour']] [ifelse (t == 1, 1, 5)], 
+          cex = 1.5, bg = 'white', lwd = 2)
+  }
   
 # add critical dates
 #--------------------------------------------------------------------------------------
 res <- criticalDates (group = 5, asDate = FALSE)
+
 dev.off ()
 
 # plot the 2019 leaf starch concentration data by treatment
@@ -529,7 +605,7 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       y = summaryDataLeaves [['meanStarch']] [con], 
       typ = 'l', xlab = '', 
       ylab = 'Leaf starch concentration (% dry weight)', las = 1,
-      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
+      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
       ylim = c (0, 8), col = 'white', axes = FALSE)
 axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
                         as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
