@@ -20,7 +20,8 @@ plot (x = phi [['date']],
 
 # make boxplots by date
 #----------------------------------------------------------------------------------------
-layout (matrix (1:2, byrow = TRUE, nrow = 2), height = c (1, 1.4))
+png (filename = './fig/Exp2019WaterPotential.png', width = 700, height = 400)
+layout (matrix (1:2, byrow = TRUE, nrow = 2), height = c (1, 1.2))
 par (mar = c (1, 6, 1, 1))
 b1 <- boxplot (phi.leaf ~ treatment + date, data = phi [phi [['treatment']] == 1, ], 
                col = addOpacity (tColours [['colour']] [1], 0.5),
@@ -40,16 +41,16 @@ axis (side = 2, las = 1)
 
 # add panel descriptors
 #----------------------------------------------------------------------------------------
-text (labels = 'leaf', x = as_date ('2019-08-30'), y = -0.1, col = '#666666', 
+text (labels = 'Leaf', x = as_date ('2019-08-25'), y = -0.1, col = '#666666', 
       cex = 1.5)
 
-par (mar = c (5, 6, 1, 1))
+par (mar = c (3, 6, 1, 1))
 b1 <- boxplot (phi.branch ~ treatment + date, data = phi [phi [['treatment']] == 1, ], 
                col = addOpacity (tColours [['colour']] [1], 0.5),
                border = tColours [['colour']] [1],
                xlim = c (as_date ('2019-05-15'),as_date ('2019-09-01')), ylim = c (-1, 0), 
                axes = FALSE, frame = FALSE,
-               xlab = 'date', ylab = expression (paste (phi,' (MPa)', sep = '')), 
+               xlab = '', ylab = expression (paste (phi,' (MPa)', sep = '')), 
                out.pch = 19, out.col = addOpacity (tColours [['colour']] [1], 0.7),
                at = unique (phi [['date']] [phi [['treatment']] == 1])-0.5)
 abline (h = 0.04, col = '#66666666')
@@ -69,7 +70,8 @@ axis (side = 1, at = seq (as_date ('2019-06-01'), as_date ('2019-09-01'), length
 
 # add panel descriptors
 #----------------------------------------------------------------------------------------
-text (labels = 'branch', x = as_date ('2019-08-30'), y = -0.1, col = '#666666', 
+text (labels = 'Branch', x = as_date ('2019-08-25'), y = -0.1, col = '#666666', 
       cex = 1.5)
+dev.off ()
 #========================================================================================
 
