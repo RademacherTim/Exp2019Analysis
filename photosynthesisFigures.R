@@ -13,7 +13,47 @@ if (!exists ('%>%')) library ('tidyverse')
 
 # read the raw photosynthesis data
 #----------------------------------------------------------------------------------------
-read_csv (file = './data/instantaneous_photosynthesis_Exp2019.csv')
+photoData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/instantaneous_photosynthesis_Exp2019.csv',
+                       col_types = cols ()) %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
+  select (-date, -time, -comments) %>%
+  rowwise %>% 
+  mutate (photosynthetic.rate = mean (c (photosynthetic.rate.1, photosynthetic.rate.2, 
+                                         photosynthetic.rate.3, photosynthetic.rate.4, 
+                                         photosynthetic.rate.5), na.rm = TRUE),
+          se.photosynthetic.rate = se (c (photosynthetic.rate.1, photosynthetic.rate.2, 
+                                          photosynthetic.rate.3, photosynthetic.rate.4, 
+                                          photosynthetic.rate.5)))
+
+# plot instantaneous photosynthetic rates of chilled versus control trees
+#----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019instantaneousPhotosynthesis.png', width = 300, height = 400)
+con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'top' & photoData [['tree.id']] != 1908
+plot (x = jitter (rep (0.8, sum (con)), 2),
+      y = photoData [['photosynthetic.rate']] [con],
+      xlim = c (0.6, 1.4), ylim = c (0, 11), axes = FALSE,
+      pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6),
+      xlab = '', 
+      ylab = expression (paste ('Instantaneous photosynthetic rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'bottom'
+points (x = jitter (rep (0.8, sum (con)), 2),
+        y = photoData [['photosynthetic.rate']] [con],
+        pch = 1, col = tColours [['colour']] [1])
+con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'top'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = photoData [['photosynthetic.rate']] [con],
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'bottom'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = photoData [['photosynthetic.rate']] [con],
+        col = tColours [['colour']] [4], pch = 23)
+axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
+axis (side = 2, at = seq (0, 10, by = 2), las = 1)
+dev.off ()
+
+# read A/Ci curves 
+#----------------------------------------------------------------------------------------
+# TR - Need to work on A/Ci and light response curves
 
 # read fluorescence data
 #----------------------------------------------------------------------------------------
@@ -100,7 +140,6 @@ con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['posit
 points (x = fluorescenceData [['Fo']] [con],
         y = fluorescenceData [['Fo.dark']] [con],
         col = tColours [['colour']] [4], pch = 5)
-mtext (side = 2, line = 3.5, text = 'Fo (dark adapted)')
 dev.off ()
 
 # Fm straight away versus dark-adapted
