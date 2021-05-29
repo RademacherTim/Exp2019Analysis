@@ -77,48 +77,86 @@ fluorescenceData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photo
 
 # Fo straight away versus dark-adapted
 #----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019Fo.png', width = 400, height = 400)
 par (mfrow = c (1, 1))
 par (mar = c (5, 5, 1, 1))
-con <- fluorescenceData [['treatment']] == 'control'
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'top'
 plot (x = fluorescenceData [['Fo']] [con],
       y = fluorescenceData [['Fo.dark']] [con], las = 1,
-      xlab = 'Fo', ylab = 'Fo (dark adapted)',
+      xlab = 'Fo', ylab = '', axes = FALSE,
       col = tColours [['colour']] [1], pch = 19, xlim = c (0.005, 0.02), ylim = c (0.005, 0.02))
 abline (b = 1, a = 0, col = '#666666')
-con <- fluorescenceData [['treatment']] == 'chilled'
+axis (side = 1, at = seq (0.00, 0.02, by = 0.005))
+axis (side = 2, at = seq (0.00, 0.02, by = 0.005), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
 points (x = fluorescenceData [['Fo']] [con],
         y = fluorescenceData [['Fo.dark']] [con],
-        col = tColours [['colour']] [4], pch = 23)
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = fluorescenceData [['Fo']] [con],
+        y = fluorescenceData [['Fo.dark']] [con],
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fo']] [con],
+        y = fluorescenceData [['Fo.dark']] [con],
+        col = tColours [['colour']] [4], pch = 5)
+mtext (side = 2, line = 3.5, text = 'Fo (dark adapted)')
+dev.off ()
 
 # Fm straight away versus dark-adapted
 #----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019Fm.png', width = 400, height = 400)
 par (mfrow = c (1, 1))
 par (mar = c (5, 5, 1, 1))
-con <- fluorescenceData [['treatment']] == 'control'
+con <- fluorescenceData [['treatment']] == 'control'  & fluorescenceData [['position']] == 'top'
 plot (x = fluorescenceData [['Fm']] [con],
       y = fluorescenceData [['Fm.dark']] [con], las = 1,
-      xlab = 'Fm', ylab = 'Fm (dark adapted)',
-      col = tColours [['colour']] [1], pch = 19)#, xlim = c (0.006, 0.02), ylim = c (0.006, 0.02))
+      xlab = 'Fm', ylab = 'Fm (dark adapted)', axes = FALSE,
+      col = tColours [['colour']] [1], pch = 19, xlim = c (0.015, 0.100), ylim = c (0.015, 0.100))
 abline (b = 1, a = 0, col = '#666666')
-con <- fluorescenceData [['treatment']] == 'chilled'
+axis (side = 1, at = seq (0.00, 0.1, by = 0.02))
+axis (side = 2, at = seq (0.00, 0.1, by = 0.02), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
 points (x = fluorescenceData [['Fm']] [con],
         y = fluorescenceData [['Fm.dark']] [con],
-        col = tColours [['colour']] [4], pch = 23)
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = fluorescenceData [['Fm']] [con],
+        y = fluorescenceData [['Fm.dark']] [con],
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fm']] [con],
+        y = fluorescenceData [['Fm.dark']] [con],
+        col = tColours [['colour']] [4], pch = 5)
+dev.off ()
 
 # Fv/Fm straight away versus dark-adapted
 #----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019FvOverFm.png', width = 400, height = 400)
 par (mfrow = c (1, 1))
 par (mar = c (5, 5, 1, 1))
-con <- fluorescenceData [['treatment']] == 'control'
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'top'
 plot (x = fluorescenceData [['FvOverFm']] [con],
       y = fluorescenceData [['FvOverFm.dark']] [con], las = 1,
-      xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
-      col = tColours [['colour']] [1], pch = 19, xlim = c (0.3, 0.85), ylim = c (0.3, 0.85))
+      xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)', axes = FALSE,
+      col = tColours [['colour']] [1], pch = 19, xlim = c (0.33, 0.85), ylim = c (0.33, 0.85))
 abline (b = 1, a = 0, col = '#666666')
-con <- fluorescenceData [['treatment']] == 'chilled'
+axis (side = 1, at = seq (0.3, 0.8, by = 0.1))
+axis (side = 2, at = seq (0.3, 0.8, by = 0.1), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
 points (x = fluorescenceData [['FvOverFm']] [con],
         y = fluorescenceData [['FvOverFm.dark']] [con],
         xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
-        col = tColours [['colour']] [4], pch = 23)
-
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = fluorescenceData [['FvOverFm']] [con],
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['FvOverFm']] [con],
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
+        col = tColours [['colour']] [4], pch = 5)
+dev.off ()
 #========================================================================================
