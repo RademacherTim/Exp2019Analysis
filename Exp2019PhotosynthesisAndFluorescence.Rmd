@@ -1,0 +1,25 @@
+---
+title: |
+  | Supplementary Materials 1:
+  | Photosynthesis and fluorescence
+author: Tim Rademacher
+date: "2021/06/01"
+output: 
+  bookdown::pdf_document2: default
+bibliography: "../bib/Exp2019Chilling.bib"
+csl: "../bib/harvard.csl"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set (echo = TRUE)
+```
+
+\begin {center}
+\textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archive as part of the data set \href {link to data archive}{HF???}.}
+\end {center}
+
+# Photosynthesis 
+
+# Leaf fluorescence
+
+# References

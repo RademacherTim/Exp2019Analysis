@@ -1,0 +1,108 @@
+---
+title: "Experiment 2019 Chilling Table 1"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library ('tidyverse')
+library ('kableExtra')
+source ('readIncrementRingWidths.R')
+options (warn = -1)
+```
+
+## Table 1 
+
+
+```{r readTable, echo = FALSE}
+
+# Source standard error function
+#----------------------------------------------------------------------------------------
+source ('plotingFunctions.R')
+
+# Read in allometric data file
+# Eventually this should be read from Harvard Forest Data Archive
+#----------------------------------------------------------------------------------------
+allometricData <- read_csv (file = './data/allometricDataExp2019.csv', 
+                            col_types = cols ())
+
+# Delete rows with compressed tree
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% filter (tree %in% c (1:5,11:15))
+
+# Delete irrelevant columns
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% select (-year, -previous.ID, -c50, -d50, -c150, -c250, -d250, -h1, -h2, -h3, -comments, -file.ring.width.1, -file.ring.width.2, -file.ring.width.3)
+
+# Convert treatment from number to character string
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% mutate (treatment = ifelse (treatment == 1, 'control','chilled'))
+
+# Determine minimum age
+#----------------------------------------------------------------------------------------
+ages <- incrementRingWidths %>% 
+  filter (treeId %in% c (1:5, 11:15)) %>% 
+  pivot_longer (cols = 5:134, names_to = 'year', names_prefix = 'Y', values_to = 'RW') %>%
+  group_by (treeId) %>%
+  filter (!is.na (RW)) %>%
+  summarise (age = min (year)) %>%
+  rename ('tree' = treeId) %>% mutate (age = as.numeric (age))
+allometricData <- left_join (x = allometricData, y = ages, by = 'tree')
+rm (ages)  
+
+# Determine average growth over past 5 years
+#----------------------------------------------------------------------------------------
+recentRW <- incrementRingWidths %>% 
+  filter (treeId %in% c (1:5, 11:15)) %>% 
+  select (1, 2, 8:12) %>% 
+  pivot_longer (cols = 3:7, names_to = 'year', names_prefix = 'Y', values_to = 'RW') %>%
+  group_by (treeId) %>%
+  summarise (meanRW = mean (RW, na.rm = TRUE),
+             seRW   = se   (RW)) %>%
+  rename ('tree' = treeId)
+allometricData <- left_join (x = allometricData, y = recentRW, by = 'tree')
+rm (recentRW)
+
+# Determine mean d, h, and age
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% group_by (treatment) %>% 
+  mutate (D = mean (d150, na.rm = TRUE),
+          H = mean (tree.height.2018, na.rm = TRUE),
+          Age = mean (age, na.rm = TRUE),
+          meanGRW = mean (meanRW, na.rm = TRUE),
+          seGRW = mean (seRW, na.rm = TRUE))
+
+# Change column order
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% 
+  relocate (D, .after = d150) %>% 
+  relocate (H, .after = tree.height.2018) %>% 
+  relocate (Age, .after = age) %>% 
+  relocate (social.status, .after = seGRW) 
+
+# Round appropriately 
+#----------------------------------------------------------------------------------------
+allometricData <- allometricData %>% 
+  mutate (D = round (D, 1),
+          H = round (H, 1),
+          Age = round (Age),
+          meanRW = round (meanRW),
+          seRW = round (seRW),
+          meanGRW = round (meanGRW),
+          seGRW = round (seGRW)) %>%
+  mutate (meanRW = sprintf ('%.0f \U00B1 %.0f', meanRW, seRW),
+          meanGRW = sprintf ('%.0f \U00B1 %.0f', meanGRW, seGRW)) %>%
+  select (-seRW, -seGRW)
+```
+
+```{r createTable, echo = FALSE}
+kbl (allometricData, 
+     caption = 'Table 1 - displays diameter at 1.5 m as measured with a diameter tape (d), mean height averaged across three hypsometer measurements (h), and both minimum age and the five-year mean of radial growth derived from increment cores, as well as social status for the control and chilled trees. For numeric values treatment group means are also listed. The table was automatically generated from publicly available data set (data set ID here) on the Harvard Forest Data Archive.',
+     col.names = NULL) %>% 
+  kable_styling () %>% 
+  row_spec (c (1,5), hline_after = TRUE) %>%
+  #column_spec (column = c (1, 2, 4, 6, 8, 10), border_right = TRUE) %>%
+  collapse_rows (columns = c (2, 4, 6, 8, 10), valign = 'top') %>% 
+  add_header_above (c ('Tree ID', 'Treatment', 'd (cm)' = 2, 'h (m)' = 2, 'Age (year)' = 2, 'Radial growth (μm)' = 2,'Social status'))
+ 
+```

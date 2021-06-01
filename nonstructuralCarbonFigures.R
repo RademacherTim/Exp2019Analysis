@@ -606,7 +606,7 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       typ = 'l', xlab = '', 
       ylab = 'Leaf starch concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
-      ylim = c (0, 8), col = 'white', axes = FALSE)
+      ylim = c (0, 9), col = 'white', axes = FALSE)
 axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
                         as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
                         as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),

@@ -10,20 +10,29 @@
 #----------------------------------------------------------------------------------------
 if (!exists ('read_excel')) library ('readxl')
 if (!exists ('%>%')) library ('tidyverse')
+if (!exists ('fitacis')) library ('plantecophys')
+#if (!exists ('')) library ('photosynthesis')
+#if (!exists ('')) library ('lmtest')
+#if (!exists ('')) library ('MASS')
+if (!exists ('lmer')) library ('lme4')
+if (!exists ('cAIC')) library ('cAIC4')
 
 # read the raw photosynthesis data
 #----------------------------------------------------------------------------------------
 photoData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/instantaneous_photosynthesis_Exp2019.csv',
                        col_types = cols ()) %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
-  select (-date, -time, -comments) %>%
+  select (-date, -comments) %>%
   rowwise %>% 
   mutate (photosynthetic.rate = mean (c (photosynthetic.rate.1, photosynthetic.rate.2, 
                                          photosynthetic.rate.3, photosynthetic.rate.4, 
                                          photosynthetic.rate.5), na.rm = TRUE),
           se.photosynthetic.rate = se (c (photosynthetic.rate.1, photosynthetic.rate.2, 
                                           photosynthetic.rate.3, photosynthetic.rate.4, 
-                                          photosynthetic.rate.5)))
+                                          photosynthetic.rate.5)),
+          tree = factor (tree.id),
+          treatment = factor (treatment),
+          position = factor (position))
 
 # plot instantaneous photosynthetic rates of chilled versus control trees
 #----------------------------------------------------------------------------------------
@@ -35,25 +44,161 @@ plot (x = jitter (rep (0.8, sum (con)), 2),
       pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6),
       xlab = '', 
       ylab = expression (paste ('Instantaneous photosynthetic rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+points (x = 0.8,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], 
+        bg = addOpacity (tColours [['colour']] [1], 0.6),
+        pch = 21, cex = 4, lwd = 3)
 con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'bottom'
 points (x = jitter (rep (0.8, sum (con)), 2),
         y = photoData [['photosynthetic.rate']] [con],
-        pch = 1, col = tColours [['colour']] [1])
+        pch = 21, col = tColours [['colour']] [1])
+points (x = 0.8,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], bg = addOpacity ('white', 0.6),
+        pch = 21, cex = 4, lwd = 3)
 con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'top'
 points (x = jitter (rep (1.2, sum (con)), 1),
         y = photoData [['photosynthetic.rate']] [con],
-        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+        col = tColours [['colour']] [4], 
+        bg = addOpacity (tColours [['colour']] [4], 0.6), pch = 23)
+points (x = 1.2,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], 
+        bg = addOpacity (tColours [['colour']] [4], 0.6), 
+        pch = 23, cex = 4, lwd = 3)
 con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'bottom'
 points (x = jitter (rep (1.2, sum (con)), 1),
         y = photoData [['photosynthetic.rate']] [con],
         col = tColours [['colour']] [4], pch = 23)
+points (x = 1.2,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], bg = addOpacity ('white', 0.6), 
+        pch = 23, cex = 4, lwd = 3)
 axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
 axis (side = 2, at = seq (0, 10, by = 2), las = 1)
 dev.off ()
 
+# test whether treatment had a substantial effect on instantaneous photosynthesis rates
+#----------------------------------------------------------------------------------------
+mod <- lmer (formula = photosynthetic.rate ~ (1 | tree), 
+             REML = TRUE, data = photoData)
+summary (mod)
+cAIC (mod)
+mod1 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time), 
+              REML = TRUE, data = photoData)
+summary (mod1)
+cAIC (mod1)
+mod2 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + position, 
+              REML = TRUE, data = photoData)
+summary (mod2)
+cAIC (mod2)
+mod3 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + treatment, 
+              REML = TRUE, data = photoData)
+summary (mod3)
+cAIC (mod3)
+mod2 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment, 
+              REML = TRUE, data = photoData)
+summary (mod2)
+cAIC (mod2)
+mod3 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment + position, 
+              REML = TRUE, data = photoData)
+summary (mod3)
+cAIC (mod3)
+mod4 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment*position, 
+              REML = TRUE, data = photoData)
+summary (mod4)
+cAIC (mod4)
+mod5 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + position, 
+              REML = TRUE, data = photoData)
+summary (mod5)
+cAIC (mod5)
+mod6 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time)*position, 
+              REML = TRUE, data = photoData)
+summary (mod6)
+cAIC (mod6)
+mod7 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time)*position*treatment, 
+              REML = TRUE, data = photoData)
+summary (mod7)
+cAIC (mod7)
+
 # read A/Ci curves 
 #----------------------------------------------------------------------------------------
-# TR - Need to work on A/Ci and light response curves
+ACiData <- 
+  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_ACi_curves_Exp2019.csv',
+            col_types = cols ()) %>%
+  filter (study == 'Exp') %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
+  select (-date, -time, -position, -study, -FTime) %>%
+  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
+  rename (Photo = photosynthetic.rate, # change names for processing using plantecophys package
+          Ci = ci,
+          Tleaf = t.leaf,
+          PARi = par.i,
+          Ci_Pa = ci.Pa,
+          Tleaf_K = t.air.k) %>% 
+  filter (!(tree.id == 1903 & leaf.id %in% c ('II','K','LL','MM')))
+
+# plot A/Ci data 
+#----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019ACiCurves.png', width = 600, height = 400)
+par (mar = c (5, 5, 1, 1))
+plot (x = ACiData [['Ci']] [ACiData [['treatment']] == 1],
+      y = ACiData [['Photo']] [ACiData [['treatment']] == 1],
+      xlim = c (0, 1800), ylim = c (0, 30), axes = FALSE, col = 'white', pch = 19,
+      xlab = 'Ci', ylab = expression (paste ('Assimilation rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+axis (side = 1, at = seq (0, 1500, 500))
+axis (side = 2, at = seq (0, 30, 6), las = 1)
+points (x = ACiData [['Ci']] [ACiData [['treatment']] == 5],
+        y = ACiData [['Photo']] [ACiData [['treatment']] == 5],
+        pch = 23, col = tColours [['colour']] [5], bg = addOpacity (tColours [['colour']] [5], 0.6))
+points (x = ACiData [['Ci']] [ACiData [['treatment']] == 1],
+        y = ACiData [['Photo']] [ACiData [['treatment']] == 1],
+        pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6))
+
+# fit A/Ci curves
+#----------------------------------------------------------------------------------------
+fit_control <- plantecophys::fitaci (data = ACiData [ACiData [['treatment']] == 1, ],
+                                     fitmethod = "bilinear")
+fit_chilled <- plantecophys::fitaci (data = ACiData [ACiData [['treatment']] == 5, ],
+                                     fitmethod = "bilinear")
+plot (fit_control, add = TRUE, linecol = tColours [['colour']] [1:3], 
+      #linecol_highlight = tColours [['colour']] [3], 
+      what = 'model', lwd = 2)
+plot (fit_chilled, add = TRUE, linecol = tColours [['colour']] [4:6], 
+      #linecol_highlight = tColours [['colour']] [5:7], 
+      what = 'model', lty = 2, lwd = 2)
+dev.off ()
+
+# read data for light response curves
+#----------------------------------------------------------------------------------------
+lightResponseData <- 
+  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_light_response_curves_Exp2019.csv',
+            col_types = cols ()) %>%
+  filter (study == 'Exp') %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
+  select (-date, -time, -position, -study, -FTime) %>%
+  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
+  filter (!(tree.id == 1905 & leaf.id == 'L'),
+          !(tree.id == 1907 & leaf.id == 'L'))
+  
+# plot light response curves 
+#----------------------------------------------------------------------------------------
+png (filename = './fig/Exp2019LightResponseCurves.png', width = 600, height = 400)
+par (mar = c (5, 5, 1, 1))
+plot (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+      y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
+      xlim = c (0, 1800), ylim = c (0, 13), axes = FALSE, col = 'white', pch = 19,
+      xlab = 'Incident PAR', ylab = expression (paste ('Assimilation rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+axis (side = 1, at = seq (0, 1500, 500))
+axis (side = 2, at = seq (0, 12, 3), las = 1)
+points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 5],
+        y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 5],
+        pch = 23, col = addOpacity (tColours [['colour']] [5], 0.6))
+points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+        y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
+        pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6))
+dev.off ()
 
 # read fluorescence data
 #----------------------------------------------------------------------------------------
