@@ -2,8 +2,7 @@
 title: |
   | Supplementary Materials 1:
   | Photosynthesis and fluorescence
-author: Tim Rademacher
-date: "2021/06/01"
+date: "2021/06/02"
 output: 
   bookdown::pdf_document2: default
 bibliography: "../bib/Exp2019Chilling.bib"
@@ -12,6 +11,11 @@ csl: "../bib/harvard.csl"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set (echo = TRUE)
+library ('tidyverse')
+library ('kableExtra')
+library ('lme4')
+library ('cAIC4')
+source ('plotingFunctions.R')
 ```
 
 \begin {center}
@@ -20,6 +24,412 @@ knitr::opts_chunk$set (echo = TRUE)
 
 # Photosynthesis 
 
+Towards the end of the chilling period (i.e., last ten days of chilling; Fig. 1), we measured instantaneous assimilations rates in leaves towards the top (sub-exposed) and bottom (shade-leaves) of the canopy for all eight trees as well as response curves to CO$_2$ (commonly referred to as A/Ci curves) and light. We conducted those measurement to see if the chilling had affected photosynthesis. All measurements were performed with a LICOR-6400 from a bucket lift that was parked in between the trees. 
+
+## Instantaneous photosynthetic rates at top and bottom of the canopy
+
+``` {r wrangle-data, echo = FALSE}
+# read the raw photosynthesis data
+#----------------------------------------------------------------------------------------
+photoData <- read_csv (file = './data/instantaneous_photosynthesis_Exp2019.csv',
+                       col_types = cols ()) %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
+  select (-date, -comments) %>%
+  rowwise %>% 
+  mutate (photosynthetic.rate = mean (c (photosynthetic.rate.1, photosynthetic.rate.2, 
+                                         photosynthetic.rate.3, photosynthetic.rate.4, 
+                                         photosynthetic.rate.5), na.rm = TRUE),
+          se.photosynthetic.rate = se (c (photosynthetic.rate.1, photosynthetic.rate.2, 
+                                          photosynthetic.rate.3, photosynthetic.rate.4, 
+                                          photosynthetic.rate.5)),
+          tree = factor (tree.id),
+          treatment = factor (treatment),
+          position = factor (position))
+
+# test whether treatment had a substantial effect on instantaneous photosynthesis rates
+#----------------------------------------------------------------------------------------
+mod <- lmer (formula = photosynthetic.rate ~ (1 | tree), 
+             REML = TRUE, data = photoData)
+mod1 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time), 
+              REML = TRUE, data = photoData)
+mod2 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + position, 
+              REML = TRUE, data = photoData)
+mod3 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + treatment, 
+              REML = TRUE, data = photoData)
+mod4 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + position, 
+              REML = TRUE, data = photoData)
+mod5 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment, 
+              REML = TRUE, data = photoData)
+mod6 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + position + treatment, 
+              REML = TRUE, data = photoData)
+mod7 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) * position, 
+              REML = TRUE, data = photoData)
+mod8 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) * treatment, 
+              REML = TRUE, data = photoData)
+mod9 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + position * treatment, 
+              REML = TRUE, data = photoData)
+mod10 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + position + treatment, 
+               REML = TRUE, data = photoData)
+mod11 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) * position + treatment, 
+               REML = TRUE, data = photoData)
+mod12 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + position * treatment, 
+               REML = TRUE, data = photoData)
+mod13 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) * treatment + position, 
+               REML = TRUE, data = photoData)
+mod14 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) * treatment * position, 
+               REML = TRUE, data = photoData)
+
+columnRandom <- rep ('tree', 15)
+columnEffects <- c ('NA','time','position','treatment','time + position','time + treatment',
+                    'position + treatment','time * position','time * treatment',
+                    'position * treatment','time + position + treatment',
+                    'time * position + treatment','time + position * treatment',
+                    'time * treatment + position','time * position * treatment')
+columncAIC <- c (cAIC (mod)   [['caic']], cAIC (mod1)  [['caic']], cAIC (mod2)  [['caic']],  
+                 cAIC (mod3)  [['caic']], cAIC (mod4)  [['caic']], cAIC (mod5)  [['caic']], 
+                 cAIC (mod6)  [['caic']], cAIC (mod7)  [['caic']], cAIC (mod8)  [['caic']], 
+                 cAIC (mod9)  [['caic']], cAIC (mod10) [['caic']], cAIC (mod11) [['caic']], 
+                 cAIC (mod12) [['caic']], cAIC (mod13) [['caic']], cAIC (mod14) [['caic']])
+tableData <- tibble (columnEffects, columnRandom, columncAIC) %>% 
+  mutate (columncAIC = as.numeric (columncAIC))
+```
+
+For instantaneous rates, the best model included only interactive fixed effects of time of day and position in the canopy and a random effect accounting for natural between-tree variability (table S\@ref(tab:MEM-outputs)). This model estimated the time of day and position effects at -0.7 $\pm$ 0.3 and -2.1 $\pm$ 0.5 $\mu mol \, m^{-2} \, s^{-1}$, respectively, and their interactions at 2.6 $\pm$ 0.8 $\mu mol \, m^{-2} \, s^{-1}$. This model was only marginally better according to the conditional AIC than several alternative model formulations that included a treatment effect. When the treatment effect was included is was estimated to range from reducing photosynthesis in chilled trees by -0.3 $\pm$ 0.7 to -0.7 $\pm$ 0.9 $\mu mol \, m^{-2} \, s^{-1}$ compared to control trees. Any difference between chilled and control trees appears to have been larger at the bottom of the canopy (Fig. S\@ref(fig:instantaneous-rates)) 
+
+```{r MEM-outputs, echo = FALSE, out.width = "90%"}
+kbl (tableData, 
+     caption = 'gives the conditions AIC for various formulations of mixed effect models fitted to the instantaneous photosynthetic rates measured in chilled and control trees towards the end of the chilling period. This table was automatically generated from publicly available code and data (data set ID here) on the Harvard Forest Data Archive.',
+     col.names = NULL,
+     digits = c (0,0,2),
+     booktab = TRUE) %>% 
+  kable_styling () %>% 
+  add_header_above (c ('Fixed effect' = 1, 'Random effects' = 1, 'conditional AIC' = 1))
+```
+
+``` {r instantaneous-rates, echo = FALSE, out.width = "50%", fig.cap = "shows instantaneous assimilation rates for chilled (blue diamonds) and control trees (green dots) at the bottom (open symbols) and the top (closed symbols) of the canopy. Treatment group means are displayed with large symbols."}
+
+# plot instantaneous photosynthetic rates of chilled versus control trees
+#----------------------------------------------------------------------------------------
+con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'top' & photoData [['tree.id']] != 1908
+plot (x = jitter (rep (0.8, sum (con)), 2),
+      y = photoData [['photosynthetic.rate']] [con],
+      xlim = c (0.6, 1.4), ylim = c (0, 11), axes = FALSE,
+      pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6),
+      xlab = '', 
+      ylab = expression (paste ('Instantaneous photosynthetic rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+points (x = 0.8,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], 
+        bg = addOpacity (tColours [['colour']] [1], 0.6),
+        pch = 21, cex = 4, lwd = 3)
+con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'bottom'
+points (x = jitter (rep (0.8, sum (con)), 2),
+        y = photoData [['photosynthetic.rate']] [con],
+        pch = 21, col = tColours [['colour']] [1])
+points (x = 0.8,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], bg = addOpacity ('white', 0.6),
+        pch = 21, cex = 4, lwd = 3)
+con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'top'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = photoData [['photosynthetic.rate']] [con],
+        col = tColours [['colour']] [4], 
+        bg = addOpacity (tColours [['colour']] [4], 0.6), pch = 23)
+points (x = 1.2,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], 
+        bg = addOpacity (tColours [['colour']] [4], 0.6), 
+        pch = 23, cex = 4, lwd = 3)
+con <- photoData [['treatment']] == 'chilled' & photoData [['position']] == 'bottom'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = photoData [['photosynthetic.rate']] [con],
+        col = tColours [['colour']] [4], pch = 23)
+points (x = 1.2,
+        y = mean (photoData [['photosynthetic.rate']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], bg = addOpacity ('white', 0.6), 
+        pch = 23, cex = 4, lwd = 3)
+axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
+axis (side = 2, at = seq (0, 10, by = 2), las = 1)
+```
+
+## A/Ci curves
+
+To estiamte whether chilling affected the photosynthetic apparatus, we derives maximal rates of photosynthetic electron transport (J$_{max}$) and RuBisCO carboxylase activity (V$_{cmax}$), and dark respiration ($R_d$) from measurements of assimilation in response to varying leaf internal CO$_2$ concentrations. We estimated photosynthethic parameters by fitting a model using the 'plantecophys' [@duursma_plantecophys_2015], which showed significant difference in photosynthetic parameters between chilled and control trees (Fig. S\@ref(fig:ACi-curves)). V$_{cmax}$ was 46.6±1.5 for chilled trees instead of 52.1±1.7 for control trees, J$_{max}$ was also lower at 85 for chilled compared to 97 for control trees, whereas dark respiration increased by 5% in chilled trees relative to control.
+
+``` {r ACi-curves, echo = FALSE, fig.cap = "shows photosynthetic assimilation as a function of CO$_2$ concentration for chilled (blue diamands) and control trees (green dots). Blue and green lines display the best fitted photosynthetic model using the 'plantecophys' R package for chilled and control groups respectively."}
+
+# read A/Ci curves 
+#----------------------------------------------------------------------------------------
+ACiData <- 
+  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_ACi_curves_Exp2019.csv',
+            col_types = cols ()) %>%
+  filter (study == 'Exp') %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
+  select (-date, -time, -position, -study, -FTime) %>%
+  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
+  rename (Photo = photosynthetic.rate, # change names for processing using plantecophys package
+          Ci = ci,
+          Tleaf = t.leaf,
+          PARi = par.i,
+          Ci_Pa = ci.Pa,
+          Tleaf_K = t.air.k) %>% 
+  filter (!(tree.id == 1903 & leaf.id %in% c ('II','K','LL','MM')))
+
+# plot A/Ci data 
+#----------------------------------------------------------------------------------------
+par (mar = c (5, 5, 1, 1))
+plot (x = ACiData [['Ci']] [ACiData [['treatment']] == 1],
+      y = ACiData [['Photo']] [ACiData [['treatment']] == 1],
+      xlim = c (0, 1800), ylim = c (0, 30), axes = FALSE, col = 'white', pch = 19,
+      xlab = 'Ci', ylab = expression (paste ('Assimilation rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+axis (side = 1, at = seq (0, 1500, 500))
+axis (side = 2, at = seq (0, 30, 6), las = 1)
+points (x = ACiData [['Ci']] [ACiData [['treatment']] == 5],
+        y = ACiData [['Photo']] [ACiData [['treatment']] == 5],
+        pch = 23, col = tColours [['colour']] [4], bg = addOpacity (tColours [['colour']] [4], 0.6))
+points (x = ACiData [['Ci']] [ACiData [['treatment']] == 1],
+        y = ACiData [['Photo']] [ACiData [['treatment']] == 1],
+        pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6))
+
+# fit A/Ci curves
+#----------------------------------------------------------------------------------------
+fit_control <- plantecophys::fitaci (data = ACiData [ACiData [['treatment']] == 1, ],
+                                     fitmethod = "bilinear")
+fit_chilled <- plantecophys::fitaci (data = ACiData [ACiData [['treatment']] == 5, ],
+                                     fitmethod = "bilinear")
+plot (fit_control, add = TRUE, linecol = tColours [['colour']] [1:3], 
+      #linecol_highlight = tColours [['colour']] [3], 
+      what = 'model', lwd = 2)
+plot (fit_chilled, add = TRUE, linecol = tColours [['colour']] [4:6], 
+      #linecol_highlight = tColours [['colour']] [5:7], 
+      what = 'model', lty = 2, lwd = 2)
+```
+
+
+## Light response curves
+
+In contrast to the A/Ci curves, light response curves varied seemingly idiosyncratically between trees and there was not clear effect of chilling on the light response in the leaves in the top of the canopy (Fig. S\@ref(fig:light-response)). While one chilled tree showed the lowest saturation level, the two highest plateaus were also found in chilled trees. 
+
+``` {r light-response, echo = FALSE, fig.cap = "shows the light response curve measurement for chilled (blue diamonds) and control trees (green dots). "}
+# read data for light response curves
+#----------------------------------------------------------------------------------------
+lightResponseData <- 
+  read_csv (file = './data/photosynthesis_light_response_curves_Exp2019.csv',
+            col_types = cols ()) %>%
+  filter (study == 'Exp') %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
+  select (-date, -time, -position, -study, -FTime) %>%
+  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
+  filter (!(tree.id == 1905 & leaf.id == 'L'),
+          !(tree.id == 1907 & leaf.id == 'L'))
+  
+# plot light response curves 
+#----------------------------------------------------------------------------------------
+par (mar = c (5, 5, 1, 1))
+plot (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+      y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
+      xlim = c (0, 1800), ylim = c (0, 13), axes = FALSE, col = 'white', pch = 19,
+      xlab = 'Incident PAR', ylab = expression (paste ('Assimilation rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
+axis (side = 1, at = seq (0, 1500, 500))
+axis (side = 2, at = seq (0, 12, 3), las = 1)
+points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 5],
+        y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 5],
+        pch = 23, col = tColours [['colour']] [4], bg = addOpacity (tColours [['colour']] [4], 0.6))
+points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+        y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
+        pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6))
+```
+
 # Leaf fluorescence
+
+Leaf chlorophyll fluorescence in particular the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in dark-adapted leaves is know to be a reliable indicator of stress to photosystem II [@kitajima_quenching_1975] and has also been directly linked to low temperature stress [@baker_applications_2004;@groom_analysis_1992]. To test whether photosystem II was stressed by the chilling in our experiment, we measured minimum fluorescence (Fo), maximum fluorescence (Fm) and the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in light-adapted and dark-adapted leaves during our intensive photosynthesis measurement campaign (Fig. 1). Fluorescence was measured in each leaf that we used for photosynthesis measurements directly after the photosynthesis measurement with a OS-30P chlorophyll fluorometer (Opti-Sciences, Hudson, New Hampshire, USA). Subsequently, we wrapped the leaves in aluminium foil and stored them in a chest cooler with ice to dark-adapt them, before re-measuring fluorescense of the dark-adapted leaves in the evening of each sampling day (i.e., after several hours of dark-adaptation). Finally, the leaves were weighted, scanned, dried at 60 $^{\circ}C$ for 24 hours and weight again to obtain leaf area, greenness, fresh weight and dry weight for each leaf.  
+
+Overall, there were no big differences in leaf fluorescence between chilled and control trees (Fig. S\@ref(fig:FvOverFm) & S\@ref(fig:Fm)). Dark adapted Fv/Fm were generally close to 0.8, which is close to the assumed optimum for many plant species [@maxwell_chlorophyll_2000]. However, there was a small difference between Fv/Fm for chilled and control trees (Fig. S\@ref(fig:FvOverFm)). The estimated treatment effect was -0.14 $\pm$ 0.01, when we fit the mixed effects model containing position of the leaf in the canopy, treatment and their interaction. While this model minimises information loss according to the conditional AIC, it only looses marginally more information that a model that does not contain treatment at all. This estiamted effect is comparable to declines in wheat and maize leaves due to cold stress [@groom_analysis_1992;@andrews_characterization_1995] and to normal seasonal changes in Fv/Fm of green summer and green autmun leaves in the closely related sugar maple [@junker_relationship_2016]. The lack of a clear difference suggests that the maximum potential quantum efficiency of photosystem II was not affected by chilling here. 
+
+``` {r FvOverFm, echo = FALSE, out.width = "50%", fig.cap = "shows Fv/Fm measured immediately after removal and after dark-adapting each leaf for several hours for chilled trees (blue diamonds) and control trees (green dots) for leaves from the bottom (open symbols) and the top (closed symbols) of the canopy."}
+# read fluorescence data
+#----------------------------------------------------------------------------------------
+fluorescenceData <- read_csv (file = './data/leaf_fluorescence_Exp2019.csv',
+                              col_types = cols (
+                                study      = col_character (),
+                                tree.id    = col_number (),
+                                treatment  = col_character (),
+                                leaf.id    = col_character (),
+                                position   = col_character (),
+                                Fo.1       = col_number (),
+                                Fm.1       = col_number (),
+                                FvOverFm.1 = col_number (),
+                                Fo.2       = col_number (),
+                                Fm.2       = col_number (),
+                                FvOverFm.2 = col_number (),
+                                Fo.3       = col_number (),
+                                Fm.3       = col_number (),
+                                FvOverFm.3 = col_number (),
+                                Fo.4       = col_number (),
+                                Fm.4       = col_number (),
+                                FvOverFm.4 = col_number (),
+                                Fo.5       = col_number (),
+                                Fm.5       = col_number (),
+                                FvOverFm.5 = col_number (),
+                                Fo.dark.1  = col_number (),
+                                Fm.dark.1  = col_number (),
+                                FvOverFm.dark.1 = col_number (),
+                                Fo.dark.2  = col_number (),
+                                Fm.dark.2  = col_number (),
+                                FvOverFm.dark.2 = col_number (),
+                                Fo.dark.3  = col_number (),
+                                Fm.dark.3  = col_number (),
+                                FvOverFm.dark.3 = col_number (),
+                                Fo.dark.4  = col_number (),
+                                Fm.dark.4  = col_number (),
+                                FvOverFm.dark.4 = col_number (),
+                                Fo.dark.5  = col_number (),
+                                Fm.dark.5  = col_number (),
+                                FvOverFm.dark.5 = col_number (),
+                                fresh.weight.g  = col_number (),
+                                dry.weight.g = col_number (),
+                                moisture.content = col_number (),
+                                comments = col_character ()
+                              )) %>%
+  mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
+  select (-date, -time, -comments) %>%
+  rowwise %>% 
+  mutate (Fo       = mean (c (Fo.1, Fo.2, Fo.3, Fo.4, Fo.5), na.rm = TRUE),
+          Fm       = mean (c (Fm.1, Fm.2, Fm.3, Fm.4, Fm.5), na.rm = TRUE),
+          FvOverFm = mean (c (FvOverFm.1, FvOverFm.2, FvOverFm.3, FvOverFm.4, FvOverFm.5), na.rm = TRUE),
+          se.Fo       = se (c (Fo.1, Fo.2, Fo.3, Fo.4, Fo.5)),
+          se.Fm       = se (c (Fo.1, Fo.2, Fo.3, Fo.4, Fo.5)),
+          se.FvOverFm = se (c (Fo.1, Fo.2, Fo.3, Fo.4, Fo.5)),
+          Fo.dark       = mean (c (Fo.dark.1, Fo.dark.2, Fo.dark.3, Fo.dark.4, Fo.dark.5), na.dark.rm = TRUE),
+          Fm.dark       = mean (c (Fm.dark.1, Fm.dark.2, Fm.dark.3, Fm.dark.4, Fm.dark.5), na.dark.rm = TRUE),
+          FvOverFm.dark = mean (c (FvOverFm.dark.1, FvOverFm.dark.2, FvOverFm.dark.3, FvOverFm.dark.4, FvOverFm.dark.5), na.dark.rm = TRUE),
+          se.dark.Fo       = se (c (Fo.dark.1, Fo.dark.2, Fo.dark.3, Fo.dark.4, Fo.dark.5)),
+          se.dark.Fm       = se (c (Fo.dark.1, Fo.dark.2, Fo.dark.3, Fo.dark.4, Fo.dark.5)),
+          se.dark.FvOverFm = se (c (Fo.dark.1, Fo.dark.2, Fo.dark.3, Fo.dark.4, Fo.dark.5)))
+
+# plot dark-adapted FvOverFm
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (5, 5, 1, 1))
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'top'
+plot (x = jitter (rep (0.8, sum (con)), amount = 0.05),
+      y = fluorescenceData [['FvOverFm.dark']] [con], las = 1,
+      xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)', axes = FALSE,
+      col = addOpacity (tColours [['colour']] [1], 0.6), pch = 19, 
+      xlim = c (0.6, 1.4), ylim = c (0.63, 0.85))
+points (x = 0.8,
+        y = mean (fluorescenceData [['FvOverFm.dark']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], bg = addOpacity (tColours [['colour']] [1], 0.6), 
+        pch = 21, cex = 4, lwd = 3)
+axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
+axis (side = 2, at = seq (0.65, 0.85, by = 0.10), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
+points (x = jitter (rep (0.8, sum (con)), amount = 0.05),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [1], pch = 1)
+points (x = 0.8,
+        y = mean (fluorescenceData [['FvOverFm.dark']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [1], bg = addOpacity ('white', 0.6), 
+        pch = 21, cex = 4, lwd = 3)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = jitter (rep (1.2, sum (con)), amount = 0.05),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [4], bg = addOpacity (tColours [['colour']] [4], 0.6), pch = 23)
+points (x = 1.2,
+        y = mean (fluorescenceData [['FvOverFm.dark']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], bg = addOpacity (tColours [['colour']] [4], 0.6), 
+        pch = 23, cex = 4, lwd = 3)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = jitter (rep (1.2, sum (con)), amount = 0.05),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [4],  pch = 23)
+points (x = 1.2,
+        y = mean (fluorescenceData [['FvOverFm.dark']] [con], na.rm = TRUE),
+        col = tColours [['colour']] [4], bg = addOpacity ('white', 0.6), 
+        pch = 23, cex = 4, lwd = 3)
+
+# test whether there is a difference between chilled and control trees
+#----------------------------------------------------------------------------------------
+tmpData <- fluorescenceData %>% select (tree.id, leaf.id, treatment, position, FvOverFm.dark) %>%
+  mutate (position = ifelse (position == 'bottom', 'bottom', 'top')) %>%
+  mutate (tree = factor (tree.id),
+          leaf = factor (leaf.id),
+          position = factor (position),
+          treatment = factor (treatment)) 
+# mod <-  lmer (formula = FvOverFm.dark ~ (1 | tree), 
+#               REML = TRUE, data = tmpData)
+# summary (mod)  
+# cAIC (mod)
+# mod1 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position, 
+#                REML = TRUE, data = tmpData)
+# summary (mod1)  
+# cAIC (mod1)
+# mod2 <-  lmer (formula = FvOverFm.dark ~ (1 | tree)+ treatment, 
+#               REML = TRUE, data = tmpData)
+# summary (mod2)  
+# cAIC (mod2)
+# mod3 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position + treatment, 
+#                REML = TRUE, data = tmpData)
+# summary (mod3)  
+# cAIC (mod3)
+# mod4 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position * treatment, 
+#               REML = TRUE, data = tmpData)
+# summary (mod4)  
+# cAIC (mod4)
+```
+
+While there were no differences in minimum and maximum fluorescence between between treatments (i.e., chilled versus control), there were differences in the minimum and maximum fluorescence at the bottom and top of the canopy when measured directly after the leaves was removed from the canopy, but not once they were dark-adapted (Fig. S\@ref(fig:Fm)). Such differences in fluorescence between sun- and shade-leaves have also been reported for four other temperate deciduous tree species [@lichtenthaler_differences_2007] and are supported by theoretical models [@olioso_simulation_1992].
+
+``` {r Fm, echo = FALSE, out.width = "50%", fig.show = 'hold', fig.cap = "shows minimum (Fo) and maximum fluorescence (Fm) measured immediately after removal and after dark-adapting each leaf for several hours for chilled trees (blue diamonds) and control trees (green dots) for leaves from the bottom (open symbols) and the top (closed symbols) of the canopy."}
+# Fo straight away versus dark-adapted
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (5, 5, 1, 1))
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'top'
+plot (x = fluorescenceData [['Fo']] [con],
+      y = fluorescenceData [['Fo.dark']] [con], las = 1,
+      xlab = 'Fo', ylab = 'Fo (dark-adapted)', axes = FALSE,
+      col = tColours [['colour']] [1], pch = 19, xlim = c (0.005, 0.02), ylim = c (0.005, 0.02))
+abline (b = 1, a = 0, col = '#666666')
+axis (side = 1, at = seq (0.00, 0.02, by = 0.005))
+axis (side = 2, at = seq (0.00, 0.02, by = 0.005), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fo']] [con],
+        y = fluorescenceData [['Fo.dark']] [con],
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = fluorescenceData [['Fo']] [con],
+        y = fluorescenceData [['Fo.dark']] [con],
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fo']] [con],
+        y = fluorescenceData [['Fo.dark']] [con],
+        col = tColours [['colour']] [4], pch = 5)
+
+# Fm straight away versus dark-adapted
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (5, 5, 1, 1))
+con <- fluorescenceData [['treatment']] == 'control'  & fluorescenceData [['position']] == 'top'
+plot (x = fluorescenceData [['Fm']] [con],
+      y = fluorescenceData [['Fm.dark']] [con], las = 1,
+      xlab = 'Fm', ylab = 'Fm (dark adapted)', axes = FALSE,
+      col = tColours [['colour']] [1], pch = 19, xlim = c (0.015, 0.100), ylim = c (0.015, 0.100))
+abline (b = 1, a = 0, col = '#666666')
+axis (side = 1, at = seq (0.00, 0.1, by = 0.02))
+axis (side = 2, at = seq (0.00, 0.1, by = 0.02), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fm']] [con],
+        y = fluorescenceData [['Fm.dark']] [con],
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = fluorescenceData [['Fm']] [con],
+        y = fluorescenceData [['Fm.dark']] [con],
+        col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = fluorescenceData [['Fm']] [con],
+        y = fluorescenceData [['Fm.dark']] [con],
+        col = tColours [['colour']] [4], pch = 5)
+```
 
 # References

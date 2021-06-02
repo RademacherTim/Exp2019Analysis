@@ -79,49 +79,6 @@ axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
 axis (side = 2, at = seq (0, 10, by = 2), las = 1)
 dev.off ()
 
-# test whether treatment had a substantial effect on instantaneous photosynthesis rates
-#----------------------------------------------------------------------------------------
-mod <- lmer (formula = photosynthetic.rate ~ (1 | tree), 
-             REML = TRUE, data = photoData)
-summary (mod)
-cAIC (mod)
-mod1 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time), 
-              REML = TRUE, data = photoData)
-summary (mod1)
-cAIC (mod1)
-mod2 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + position, 
-              REML = TRUE, data = photoData)
-summary (mod2)
-cAIC (mod2)
-mod3 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + treatment, 
-              REML = TRUE, data = photoData)
-summary (mod3)
-cAIC (mod3)
-mod2 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment, 
-              REML = TRUE, data = photoData)
-summary (mod2)
-cAIC (mod2)
-mod3 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment + position, 
-              REML = TRUE, data = photoData)
-summary (mod3)
-cAIC (mod3)
-mod4 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + treatment*position, 
-              REML = TRUE, data = photoData)
-summary (mod4)
-cAIC (mod4)
-mod5 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time) + position, 
-              REML = TRUE, data = photoData)
-summary (mod5)
-cAIC (mod5)
-mod6 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time)*position, 
-              REML = TRUE, data = photoData)
-summary (mod6)
-cAIC (mod6)
-mod7 <- lmer (formula = photosynthetic.rate ~ (1 | tree) + scale (time)*position*treatment, 
-              REML = TRUE, data = photoData)
-summary (mod7)
-cAIC (mod7)
-
 # read A/Ci curves 
 #----------------------------------------------------------------------------------------
 ACiData <- 
@@ -330,17 +287,67 @@ axis (side = 2, at = seq (0.3, 0.8, by = 0.1), las = 1)
 con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
 points (x = fluorescenceData [['FvOverFm']] [con],
         y = fluorescenceData [['FvOverFm.dark']] [con],
-        xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
         col = tColours [['colour']] [1], pch = 1)
 con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
 points (x = fluorescenceData [['FvOverFm']] [con],
         y = fluorescenceData [['FvOverFm.dark']] [con],
-        xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
         col = tColours [['colour']] [4], bg = tColours [['colour']] [4], pch = 23)
 con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
 points (x = fluorescenceData [['FvOverFm']] [con],
         y = fluorescenceData [['FvOverFm.dark']] [con],
-        xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)',
         col = tColours [['colour']] [4], pch = 5)
 dev.off ()
+
+# plot dark-adapted FvOverFm
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (5, 5, 1, 1))
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'top'
+plot (x = jitter (rep (0.8, sum (con)), 2),
+      y = fluorescenceData [['FvOverFm.dark']] [con], las = 1,
+      xlab = 'Fv/Fm', ylab = 'Fv/Fm (dark adapted)', axes = FALSE,
+      col = tColours [['colour']] [1], pch = 19, xlim = c (0.6, 1.4), ylim = c (0.63, 0.85))
+axis (side = 1, at = c (0.8, 1.2), labels = c ('Control','Chilled'))
+axis (side = 2, at = seq (0.65, 0.85, by = 0.10), las = 1)
+con <- fluorescenceData [['treatment']] == 'control' & fluorescenceData [['position']] == 'bottom'
+points (x = jitter (rep (0.8, sum (con)), 2),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [1], pch = 1)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'top'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [5], bg = tColours [['colour']] [5], pch = 23)
+con <- fluorescenceData [['treatment']] == 'chilled' & fluorescenceData [['position']] == 'bottom'
+points (x = jitter (rep (1.2, sum (con)), 1),
+        y = fluorescenceData [['FvOverFm.dark']] [con],
+        col = tColours [['colour']] [5],  pch = 23)
+
+# test whether there is a difference between chilled and control trees
+#----------------------------------------------------------------------------------------
+tmpData <- fluorescenceData %>% select (tree.id, leaf.id, treatment, position, FvOverFm.dark) %>%
+  mutate (position = ifelse (position == 'bottom', 'bottom', 'top')) %>%
+  mutate (tree = factor (tree.id),
+          leaf = factor (leaf.id),
+          position = factor (position),
+          treatment = factor (treatment)) 
+mod <-  lmer (formula = FvOverFm.dark ~ (1 | tree), 
+              REML = TRUE, data = tmpData)
+summary (mod)  
+cAIC (mod)
+mod1 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position, 
+               REML = TRUE, data = tmpData)
+summary (mod1)  
+cAIC (mod1)
+mod2 <-  lmer (formula = FvOverFm.dark ~ (1 | tree)+ treatment, 
+              REML = TRUE, data = tmpData)
+summary (mod2)  
+cAIC (mod2)
+mod3 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position + treatment, 
+               REML = TRUE, data = tmpData)
+summary (mod3)  
+cAIC (mod3)
+mod4 <-  lmer (formula = FvOverFm.dark ~ (1 | tree) + position * treatment, 
+              REML = TRUE, data = tmpData)
+summary (mod4)  
+cAIC (mod4)
 #========================================================================================

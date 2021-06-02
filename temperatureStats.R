@@ -154,19 +154,79 @@ sum (temp [['temp < 5']] [temp [['height']] == '2p0m'], na.rm = TRUE) /
 # calculate mean temperature during chilling
 #----------------------------------------------------------------------------------------
 temp <- tempData %>% filter (datetime > startDate, datetime < endDate) %>% 
-  select (datetime, t.01.2p0m, t.01.1p0m, t.02.2p0m, t.02.1p0m, t.03.2p0m, t.03.1p0m, 
-          t.04.2p0m, t.04.1p0m, t.05.2p0m, t.05.1p0m) %>% 
+  select (datetime, t.acer.01.2p0m, t.acer.01.1p0m, t.acer.02.2p0m, t.acer.02.1p0m, 
+          t.acer.03.2p0m, t.acer.03.1p0m, t.acer.04.2p0m, t.acer.04.1p0m, t.acer.05.2p0m, 
+          t.acer.05.1p0m) %>% 
   pivot_longer (cols = !datetime, 
                 names_to =  c ('tree','height'), 
-                names_prefix = 't.', 
+                names_prefix = 't.acer.', 
                 names_pattern = '(.*)\\.(.*)', 
                 values_to = 'temp') %>%
-  filter (!is.na (temp), !is.nan (temp)) 
-mean (temp [['temp']] [temp [['height']] == '1p0m'], na.rm = TRUE)
-sd   (temp [['temp']] [temp [['height']] == '1p0m'], na.rm = TRUE)
-se   (temp [['temp']] [temp [['height']] == '1p0m'])
-mean (temp [['temp']] [temp [['height']] == '2p0m'], na.rm = TRUE)
-sd   (temp [['temp']] [temp [['height']] == '2p0m'], na.rm = TRUE)
-se   (temp [['temp']] [temp [['height']] == '2p0m'])
+  filter (!is.na (temp), !is.nan (temp)) %>%
+  mutate (treatment = ifelse (tree %in% c ('01','03','05','08'), 'control', 'chilled'))
 
+# mean phloem temperature of control trees
+#----------------------------------------------------------------------------------------
+mean (temp %>% filter (height == '1p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+sd   (temp %>% filter (height == '1p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+se   (temp %>% filter (height == '1p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist ())
+mean (temp %>% filter (height == '2p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+sd   (temp %>% filter (height == '2p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+se   (temp %>% filter (height == '2p0m' & treatment == 'control') %>% select (temp) %>% 
+        unlist ())
+
+# mean phloem temperature of control trees
+#----------------------------------------------------------------------------------------
+mean (temp %>% filter (height == '1p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+sd   (temp %>% filter (height == '1p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+se   (temp %>% filter (height == '1p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist ())
+mean (temp %>% filter (height == '2p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+sd   (temp %>% filter (height == '2p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist (), na.rm = TRUE)
+se   (temp %>% filter (height == '2p0m' & treatment == 'chilled') %>% select (temp) %>% 
+        unlist ())
+
+# mean temperature difference of chilled and control trees at 1.5m during the chilling 
+#----------------------------------------------------------------------------------------
+temp <- hourlyData %>% filter (datetime > startDate, datetime < endDate) %>%
+  pivot_longer (cols = !datetime, 
+                names_to =  c ('tree','height'), 
+                names_prefix = 't.acer.', 
+                names_pattern = '(.*)\\.(.*)', 
+                values_to = 'temp') %>%
+  filter (height == '1p5m',
+          tree != 't.oak',
+          tree != 't.air') %>%
+  filter (!is.na (temp), !is.nan (temp)) %>%
+  mutate (treatment = ifelse (tree %in% c ('01','03','05','08'), 'control', 'chilled'))
+
+# mean phloem temperature of control trees
+#----------------------------------------------------------------------------------------
+mean (temp %>% filter (treatment == 'control') %>% select (temp) %>% unlist (), na.rm = TRUE)
+sd   (temp %>% filter (treatment == 'control') %>% select (temp) %>% unlist (), na.rm = TRUE)
+se   (temp %>% filter (treatment == 'control') %>% select (temp) %>% unlist ())
+mean (temp %>% filter (treatment == 'chilled') %>% select (temp) %>% unlist (), na.rm = TRUE)
+sd   (temp %>% filter (treatment == 'chilled') %>% select (temp) %>% unlist (), na.rm = TRUE)
+se   (temp %>% filter (treatment == 'chilled') %>% select (temp) %>% unlist ())
+
+# read annual metric climate data from Harvard Forest Data Archive (HF300)
+#----------------------------------------------------------------------------------------
+climData <- read_csv (url ('https://harvardforest.fas.harvard.edu/data/p30/hf300/hf300-01-annual-m.csv'),
+                      col_types = cols ())
+
+# calculate long-term climate averages
+#----------------------------------------------------------------------------------------
+mean (climData %>% select (airt) %>% unlist ())
+sd (climData %>% select (airt) %>% unlist ())
+mean (climData %>% select (prec) %>% unlist ())
+sd (climData %>% select (prec) %>% unlist ())
 #========================================================================================
