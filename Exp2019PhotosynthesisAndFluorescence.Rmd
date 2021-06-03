@@ -24,7 +24,7 @@ source ('plotingFunctions.R')
 
 # Photosynthesis 
 
-Towards the end of the chilling period (i.e., last ten days of chilling; Fig. 1), we measured instantaneous assimilations rates in leaves towards the top (sub-exposed) and bottom (shade-leaves) of the canopy for all eight trees as well as response curves to CO$_2$ (commonly referred to as A/Ci curves) and light. We conducted those measurement to see if the chilling had affected photosynthesis. All measurements were performed with a LICOR-6400 from a bucket lift that was parked in between the trees. 
+Towards the end of the chilling period (i.e., last ten days of chilling; Fig. 1), we measured instantaneous assimilations rates in leaves towards the top (sub-exposed) and bottom (shade-leaves) of the canopy for all eight trees as well as response curves to CO$_2$ (commonly referred to as A/Ci curves) and light. We conducted those measurement to see if the chilling had affected photosynthesis. All measurements were performed with a LICOR-6400 () from a bucket lift that was parked in between the trees. 
 
 ## Instantaneous photosynthetic rates at top and bottom of the canopy
 
