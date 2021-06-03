@@ -1,0 +1,341 @@
+---
+title: | 
+  | Supplement 2: Water status
+date: "2021/06/02"
+output: 
+  bookdown::pdf_document2: default
+bibliography: "../bib/Exp2019Chilling.bib"
+csl: "../bib/harvard.csl"
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set (echo = TRUE)
+library ('tidyverse')
+library ('lubridate')
+library ('kableExtra')
+library ('lme4')
+library ('cAIC4')
+source ('plotingFunctions.R')
+```
+
+\begin {center}
+\textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archive as part of the data set \href {link to data archive}{HF???}.}
+\end {center}
+
+# Water status 
+
+To elucidate any collateral effects of the phloem chilling treatment on water status of chilled trees, we measured sap flow continuously and conducted pre-dawn leaf and branch water potential measurements on one morning roughly every second week for all eight trees throughout the 2019 growing season. 
+
+## Leaf and branch water potential
+
+For the water potential measurements, we cut two small branchles and five leaves at their petiole with razor blades using a bucket lift to access the canopy at least one hour before sunrise. The water potential of the two branches and five leaves were measured immediately from the bucket lift using a pressure bomb (Model 600, PMS Instruments, Albany, Oregon, USA). Measurements were averaged across repeat samples from the same tree to one mean branch and one mean leaf measurement.
+
+``` {r read-water-potential, echo = FALSE}
+# read water potential data file
+#----------------------------------------------------------------------------------------
+phi <- read_csv (file = './data/waterPotentialMeasurementsExp2019.csv', 
+                 col_types = cols ())
+```
+
+There were no detectable differences between leaf or branch water potential of the chilled (blue boxplots) and control (green boxplots) trees across the growing season (Fig. S\@ref(fig:plot-water-potential)). Moreover, the higher water potential measurements (i.e., not exceeding -0.8 MPa) indicate that neither the control, nor the chilled group experienced water stress during the 2019 growing season.  
+
+``` {r plot-water-potential, echo = FALSE, out.width = "90%", fig.cap = "shows boxplots summarising chilled (blue) and control (green) group leaf (top panel) and branch (bottom panel) water potential measurements for each morning when we measured water potential. Boxplots are slightly shifted on the x-axis to display the two treatment groups next to each other."}
+# make boxplots by date
+#----------------------------------------------------------------------------------------
+layout (matrix (1:2, byrow = TRUE, nrow = 2), height = c (1, 1.2))
+par (mar = c (1, 6, 1, 1))
+b1 <- boxplot (phi.leaf ~ treatment + date, data = phi [phi [['treatment']] == 1, ], 
+               col = addOpacity (tColours [['colour']] [1], 0.5),
+               border = tColours [['colour']] [1],
+               xlim = c (as_date ('2019-05-15'),as_date ('2019-09-01')), ylim = c (-1, 0), 
+               axes = FALSE, frame = FALSE,
+               xlab = '', ylab = expression (paste (phi,' (MPa)', sep = '')), 
+               out.pch = 19, out.col = addOpacity (tColours [['colour']] [1], 0.7),
+               at = unique (phi [['date']] [phi [['treatment']] == 1])-0.5)
+b2 <- boxplot (phi.leaf ~ treatment + date, data = phi [phi [['treatment']] == 5, ], 
+               col = addOpacity (tColours [['colour']] [5], 0.5),
+               border = tColours [['colour']] [5], add = TRUE, 
+               ylim = c (-1, 0), axes = FALSE, frame = FALSE,
+               out.pch = 19, out.col = addOpacity (tColours [['colour']] [5], 0.7),
+               at = unique (phi [['date']] [phi [['treatment']] == 5])+0.5)
+axis (side = 2, las = 1)
+
+# add panel descriptors
+#----------------------------------------------------------------------------------------
+text (labels = 'Leaf', x = as_date ('2019-08-25'), y = -0.1, col = '#666666', 
+      cex = 1.5)
+
+par (mar = c (3, 6, 1, 1))
+b1 <- boxplot (phi.branch ~ treatment + date, data = phi [phi [['treatment']] == 1, ], 
+               col = addOpacity (tColours [['colour']] [1], 0.5),
+               border = tColours [['colour']] [1],
+               xlim = c (as_date ('2019-05-15'),as_date ('2019-09-01')), ylim = c (-1, 0), 
+               axes = FALSE, frame = FALSE,
+               xlab = '', ylab = expression (paste (phi,' (MPa)', sep = '')), 
+               out.pch = 19, out.col = addOpacity (tColours [['colour']] [1], 0.7),
+               at = unique (phi [['date']] [phi [['treatment']] == 1])-0.5)
+abline (h = 0.04, col = '#66666666')
+b2 <- boxplot (phi.branch ~ treatment + date, data = phi [phi [['treatment']] == 5, ], 
+               col = addOpacity (tColours [['colour']] [5], 0.5),
+               border = tColours [['colour']] [5], add = TRUE, 
+               ylim = c (-1, 0), axes = FALSE, frame = FALSE,
+               xlab = '', ylab = '', 
+               out.pch = 19, out.col = addOpacity (tColours [['colour']] [5], 0.7),
+               at = unique (phi [['date']] [phi [['treatment']] == 5])+0.5)
+axis (side = 2, las = 1)
+
+# add x-axis
+#----------------------------------------------------------------------------------------
+axis (side = 1, at = seq (as_date ('2019-06-01'), as_date ('2019-09-01'), length.out = 4),
+      labels = c ('Jun','Jul','Aug','Sep'))
+
+# add panel descriptors
+#----------------------------------------------------------------------------------------
+text (labels = 'Branch', x = as_date ('2019-08-25'), y = -0.1, col = '#666666', 
+      cex = 1.5)
+```
+
+## Sapflow
+
+To monitor sap flow, we used three needle heat-pulse sensors (East 30, Pullman, Washington, USA), which we installed at 1.5 m above the ground on the north-facing side of the stem according to manufacturers instructions. The heat-pulse method converts differences in temperature following a heat pulse to quantify the velocity of the heat pulse and translate this into a estimate of sap flow velocity [@huber_beobachtung_1932]. For this purpuse, raw temperatures were logged every 20 minutes at three depths (i.e., 5.0, 17.5, 30.0 mm) and thereafter converted to sap flow velocities. 
+
+```{r read-sap-flow, echo = FALSE}
+# code chunk to read corrected sap flow files including sap flow velocity (mm s-1) and sap 
+# flux (cm3 h-1)
+#----------------------------------------------------------------------------------------
+
+# read files for each tree and add tree ID and treatment (1 = control; 5 = chilled)
+#----------------------------------------------------------------------------------------
+columns <-  cols ('datetime'   = col_datetime (),
+                  'record'      = col_integer (),
+                  'u.battery'      = col_double (),
+                  't.panel'     = col_double (),
+                  't.initial.1' = col_double (),
+                  't.initial.2' = col_double (),
+                  't.initial.3' = col_double (),
+                  't.initial.4' = col_double (),
+                  't.initial.5' = col_double (),
+                  't.initial.6' = col_double (),
+                  't.60.1'      = col_double (),
+                  't.60.2'      = col_double (),
+                  't.60.3'      = col_double (),
+                  't.60.4'      = col_double (),
+                  't.60.5'      = col_double (),
+                  't.60.6'      = col_double (),
+                  'v.sap.1'     = col_double (),
+                  'v.sap.2'     = col_double (),
+                  'v.sap.3'     = col_double ())
+data19p1 <- read_csv (file = './data/Exp2019_19p1_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 1, treatment = 1)
+data19p2 <- read_csv (file = './data/Exp2019_19p2_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 2, treatment = 5)
+data19p3 <- read_csv (file = './data/Exp2019_19p3_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 3, treatment = 1)
+data19p4 <- read_csv (file = './data/Exp2019_19p4_sapflow.csv', col_types = columns)  %>% 
+  add_column (tree = 4, treatment = 5)
+data19p5 <- read_csv (file = './data/Exp2019_19p5_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 5, treatment = 1)
+data19p6 <- read_csv (file = './data/Exp2019_19p6_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 6, treatment = 5)
+data19p7 <- read_csv (file = './data/Exp2019_19p7_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 7, treatment = 5)
+data19p8 <- read_csv (file = './data/Exp2019_19p8_sapflow.csv', col_types = columns) %>% 
+  add_column (tree = 8, treatment = 1)
+
+# Wrangle data to have long format
+#----------------------------------------------------------------------------------------
+sapFlowData <- rbind (data19p1, data19p2, data19p3, data19p4, data19p5, data19p6, 
+                      data19p7, data19p8)
+
+# check for low data logger battery voltage and sort them out
+#----------------------------------------------------------------------------------------
+sapFlowData <- sapFlowData %>% filter (u.battery > 9.0)
+
+# Clean up
+#----------------------------------------------------------------------------------------
+rm (data19p1, data19p2, data19p3, data19p4, data19p5, data19p6, data19p7, data19p8,
+    columns)
+
+# reconvert datetime to a datetime
+#----------------------------------------------------------------------------------------
+sapFlowData [['datetime']] <- sapFlowData [['datetime']] %>%
+  floor_date (unit = '15 mins')
+
+# average temperature data over 15-minute
+#----------------------------------------------------------------------------------------
+sapFlowData <- sapFlowData %>% 
+  select (datetime, v.sap.1, v.sap.2, v.sap.3, tree, treatment) %>%
+  group_by (tree, treatment, datetime = cut (datetime, breaks = '1 hour')) %>%
+  summarise (v.sap.1 = mean (v.sap.1, na.rm = TRUE),
+             v.sap.2 = mean (v.sap.2, na.rm = TRUE),
+             v.sap.3 = mean (v.sap.3, na.rm = TRUE),
+             .groups = 'drop') %>% 
+  mutate (datetime = as_datetime (datetime))
+  # %>%
+  # mutate (v.sap.1 = replace (v.sap.1, which (v.sap.1 < -0.05), NA),
+  #         v.sap.2 = replace (v.sap.2, which (v.sap.2 < -0.05), NA),
+  #         v.sap.3 = replace (v.sap.3, which (v.sap.3 < -0.05), NA))
+```
+
+``` {r sap-flow-stats, echo = FALSE, out.width = "90%", fig.cap = "shows..."}
+# get start and end date of the chilling
+#----------------------------------------------------------------------------------------
+startDate1   <- criticalDates (group = '5', asDate = TRUE, startOnly = TRUE) 
+endDate1     <- criticalDates (group = '5', asDate = TRUE, endOnly   = TRUE)
+startDate2   <- as_datetime ('2020-05-29 12:00:00')
+endDate2     <- as_datetime ('2020-07-10 12:00:00')
+seasonEnd    <- as_datetime ('2019-11-01')
+seasonStart2 <- as_datetime ('2020-05-01')
+
+# filter out off-season
+#----------------------------------------------------------------------------------------
+sapFlowData <- 
+  sapFlowData %>% filter (datetime > as_datetime ('2019-05-01')) %>%
+  filter (datetime < as_datetime ('2019-11-01') | datetime > as_datetime ('2020-05-01'))
+
+# add column based on period (e.g., before, during, and after treatment)
+#----------------------------------------------------------------------------------------
+sapFlowData [['period']] [sapFlowData [['datetime']] < startDate1] <- 'early1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= startDate1 & 
+                          sapFlowData [['datetime']] <= endDate1] <- 'mid1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= endDate1 & 
+                          sapFlowData [['datetime']] <= as_datetime ('2020-01-01')] <- 'late1'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= as_datetime ('2020-01-01') & 
+                          sapFlowData [['datetime']] < startDate2] <- 'early2'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= startDate2 & 
+                            sapFlowData [['datetime']] <= endDate2] <- 'mid2'
+sapFlowData [['period']] [sapFlowData [['datetime']] >= endDate2] <- 'late2'
+
+# calculate mean sap flow velocity and standard deviation by group during the experiment
+#----------------------------------------------------------------------------------------
+# sapFlowData %>% group_by (treatment, period) %>% 
+#   summarise (mean.v.sap.1 = mean (v.sap.1, na.rm = TRUE),
+#              se.v.sap.1   = se   (v.sap.1),
+#              mean.v.sap.2 = mean (v.sap.2, na.rm = TRUE),
+#              se.v.sap.2   = se   (v.sap.2),
+#              mean.v.sap.3 = mean (v.sap.3, na.rm = TRUE),
+#              se.v.sap.3   = se   (v.sap.3))
+
+# use mid-day rates only (e.g., 11-14h)
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- sapFlowData %>% 
+  filter (hour (datetime) >= 11 & hour (datetime) <= 14) %>%
+  mutate (date = as_date (datetime))
+
+# get midday median value of sapflow and replace negative values by NA
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- middaySapFlowData %>% 
+  group_by (tree, treatment, date, period) %>%
+  summarise (v.sap.1 = median (v.sap.1, na.rm = TRUE),
+             v.sap.2 = median (v.sap.2, na.rm = TRUE),
+             v.sap.3 = median (v.sap.3, na.rm = TRUE),
+             .groups = 'drop')
+
+# wrangle data into long format
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- pivot_longer (data = middaySapFlowData, 
+                                   cols = c (v.sap.1, v.sap.2, v.sap.3), 
+                                   names_to = 'depth', names_prefix = 'v.sap.', 
+                                   values_to = 'v.sap')
+
+# filter for only depth with best signal for each tree
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- middaySapFlowData %>% 
+  filter ((tree == 1 & depth == 3) |
+          (tree == 2 & depth == 3) | 
+          (tree == 3 & depth == 3) | 
+          (tree == 4 & depth == 3) | 
+          (tree == 5 & depth == 2) | 
+          (tree == 6 & depth == 2) | 
+          (tree == 7 & depth == 3) | 
+          (tree == 8 & depth == 2)) %>%
+  select (-depth)
+
+# exclude tree 7 in 2020, because the sensor broke
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- middaySapFlowData %>% 
+  filter (!(tree == 7 & date > as_date ('2020-01-01')))
+
+# filter out 2020 late period 
+#----------------------------------------------------------------------------------------
+middaySapFlowData <- middaySapFlowData %>% filter (period != 'late2')
+
+# convert variable to factors
+#----------------------------------------------------------------------------------------
+tempSapFlow <- middaySapFlowData %>%
+  mutate (date      = factor (date),
+          tree      = factor (tree),
+          treatment = factor (treatment, levels = c (1, 5)),
+          period    = factor (period,    levels = c ('mid1','early2','late2','mid2',
+                                                     'early1','late1')))
+
+# fit mixed effects model to wood sugar concentrations with tree and height as random 
+# effects to account for idiosyncratic differences due to factors such as variations 
+# in exact azimuth or systematic difference between trees
+#----------------------------------------------------------------------------------------
+M1 <- lmer (formula = v.sap ~ (1 | tree) + period + period:treatment, 
+            data = tempSapFlow,
+            REML = TRUE)
+#summary (M1)
+M2 <- lmer (formula = v.sap ~ (1 | tree) + period, 
+            data = tempSapFlow,
+            REML = TRUE)
+#summary (M2)
+```
+
+Sap flow velocity was slightly higher in the chilled group and the control group (Fig. \@ref(fig:plot-sap-flow)). However, this was already the case before the chilling started and continued after the chilling ended, suggesting that these were baseline differences and not a treatment effect. Moreover, the tendency for higher sap flow rates in control group trees continued in the following early- and mid-growing season. The estimated effect of the treatment and period interaction is negligibily small with -0.006±0.012 $mm \, s^{-1}$ and including this interactions only reduced the conditional AIC from `r round (cAIC (M1)$caic, 2)` to `r round (cAIC (M2)$caic, 2)` further suggesting that including this interaction at all only produces a marginally more probably model.  
+
+``` {r plot-sap-flow, echo = FALSE, fig.show = 'hold', out.width = "50%", fig.cap = "shows the treatment group mean of the median sap flow veolocity between 11h and 14h local time for chilled (blue line) and control trees (green line) for the 2019 season (left panel) and the early- and mid-season in 2020 (right panel). The start and end of the chilling are marked with grey dashed vertical lines in the 2019 panel."}
+temp <- middaySapFlowData %>% filter (v.sap > 0) %>%
+  group_by (treatment, date) %>% 
+  summarise (meanJ = mean (v.sap, na.rm = TRUE),
+             .groups = 'drop')
+  
+# plot midday sap flow velocity (mm s-1) of chilled and control trees at 1.5m at most
+# conductive depth per tree
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (2, 5, 1, 1))
+con <- temp [['treatment']] == 1
+plot (x = temp [['date']] [con], 
+      y = temp [['meanJ']] [con], typ = 'l', las = 1, 
+      xlim = c (as_date ('2019-05-01'), as_date ('2019-12-01')), 
+      ylim = c (-0., 0.25), ylab = expression ('Sap flow velocity (mm'~s^{-1}~')'),
+      xlab = '', col = tColours [['colour']] [1], axes = FALSE)
+axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'), 
+                        as_date ('2019-07-01'), as_date ('2019-08-01'), 
+                        as_date ('2019-09-01'), as_date ('2019-10-01'), 
+                        as_date ('2019-11-01')), 
+      labels = c ('May','Jun','Jul','Aug','Sep','Oct','Nov'))
+axis (side = 2, at = seq (0, 0.25, by = 0.05), las = 1)
+con <- temp [['treatment']] == 5
+lines (x = temp [['date']] [con], 
+        y = temp [['meanJ']] [con], 
+        col = tColours [['colour']] [5])
+abline (v = c (as_date ('2019-05-29'), as_date ('2019-07-10')), 
+        col = '#999999', lty = 2)
+text (x = as_date ('2019-10-01'), y = 0.25, labels = '2019', cex = 2, col = '#666666')
+  
+# plot midday sap flow velocity (mm s-1) of chilled and control trees at 1.5m at most
+# conductive depth per tree
+#----------------------------------------------------------------------------------------
+par (mfrow = c (1, 1))
+par (mar = c (2, 5, 1, 1))
+con <- temp [['treatment']] == 1
+plot (x = temp [['date']] [con], 
+      y = temp [['meanJ']] [con], typ = 'l', las = 1, 
+      xlim = c (as_date ('2020-05-01'), as_date ('2020-07-15')), 
+      ylim = c (-0., 0.25), ylab = expression ('Sap flow velocity (mm'~s^{-1}~')'),
+      xlab = '', col = tColours [['colour']] [1], axes = FALSE)
+axis (side = 1, at = c (as_date ('2020-05-01'), as_date ('2020-06-01'), 
+                        as_date ('2020-07-01')), 
+      labels = c ('May','Jun','Jul'))
+axis (side = 2, at = seq (0, 0.25, by = 0.05), las = 1)
+con <- temp [['treatment']] == 5
+lines (x = temp [['date']] [con], 
+        y = temp [['meanJ']] [con], 
+        col = tColours [['colour']] [5])
+text (x = as_date ('2020-07-10'), y = 0.25, labels = '2020', cex = 2, col = '#666666')
+```
+
+# References
