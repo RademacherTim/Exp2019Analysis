@@ -24,11 +24,11 @@ source ('plotingFunctions.R')
 
 # Water status 
 
-To elucidate any collateral effects of the phloem chilling treatment on water status of chilled trees, we measured sap flow continuously and conducted pre-dawn leaf and branch water potential measurements on one morning roughly every second week for all eight trees throughout the 2019 growing season. 
+To elucidate any collateral effects of the phloem chilling treatment on water status of chilled trees, we measured sap flow continuously and conducted pre-dawn leaf and branch water potential measurements on one morning roughly every second week for all chilled and control trees throughout the 2019 growing season. 
 
 ## Leaf and branch water potential
 
-For the water potential measurements, we cut two small branchles and five leaves at their petiole with razor blades using a bucket lift to access the canopy at least one hour before sunrise. The water potential of the two branches and five leaves were measured immediately from the bucket lift using a pressure bomb (Model 600, PMS Instruments, Albany, Oregon, USA). Measurements were averaged across repeat samples from the same tree to one mean branch and one mean leaf measurement.
+For the water potential measurements, we cut two small branches and five leaves at their petiole with razor blades using a bucket lift to access the canopy starting about one hour before sunrise. The water potential of the two branches and five leaves were measured immediately from the bucket lift using a pressure bomb (Model 600, PMS Instruments, Albany, Oregon, USA). Measurements were averaged across repeat samples from the same tree to obtain one mean branch and one mean leaf measurement.
 
 ``` {r read-water-potential, echo = FALSE}
 # read water potential data file
@@ -37,7 +37,7 @@ phi <- read_csv (file = './data/waterPotentialMeasurementsExp2019.csv',
                  col_types = cols ())
 ```
 
-There were no detectable differences between leaf or branch water potential of the chilled (blue boxplots) and control (green boxplots) trees across the growing season (Fig. S\@ref(fig:plot-water-potential)). Moreover, the higher water potential measurements (i.e., not exceeding -0.8 MPa) indicate that neither the control, nor the chilled group experienced water stress during the 2019 growing season.  
+There were no detectable differences between leaf or branch water potential of the chilled (blue boxplots) and control (green boxplots) trees across the growing season (Fig. S\@ref(fig:plot-water-potential)). Moreover, the high water potential measurements (i.e., not exceeding -0.8 MPa) indicate that neither the control, nor the chilled group experienced water stress during the 2019 growing season.  
 
 ``` {r plot-water-potential, echo = FALSE, out.width = "90%", fig.cap = "shows boxplots summarising chilled (blue) and control (green) group leaf (top panel) and branch (bottom panel) water potential measurements for each morning when we measured water potential. Boxplots are slightly shifted on the x-axis to display the two treatment groups next to each other."}
 # make boxplots by date
@@ -97,7 +97,7 @@ text (labels = 'Branch', x = as_date ('2019-08-25'), y = -0.1, col = '#666666',
 
 ## Sapflow
 
-To monitor sap flow, we used three needle heat-pulse sensors (East 30, Pullman, Washington, USA), which we installed at 1.5 m above the ground on the north-facing side of the stem according to manufacturers instructions. The heat-pulse method converts differences in temperature following a heat pulse to quantify the velocity of the heat pulse and translate this into a estimate of sap flow velocity [@huber_beobachtung_1932]. For this purpuse, raw temperatures were logged every 20 minutes at three depths (i.e., 5.0, 17.5, 30.0 mm) and thereafter converted to sap flow velocities. 
+To monitor sap flow, we used heat-pulse sensors (East 30, Pullman, Washington, USA), which we installed at 1.5 m above the ground on the north-facing side of the stem according to manufacturers instructions. The heat-pulse method converts differences in temperature following a heat pulse to quantify the velocity of the heat pulse and translate this into an estimate of sap flow velocity [@huber_beobachtung_1932]. For this purpuse, raw temperatures were logged every 20 minutes at three depths (i.e., 5.0, 17.5, 30.0 mm) just before and one minute after a 8 second heat pulse, which were subsequently converted to sap flow velocities. 
 
 ```{r read-sap-flow, echo = FALSE}
 # code chunk to read corrected sap flow files including sap flow velocity (mm s-1) and sap 
@@ -283,7 +283,7 @@ M2 <- lmer (formula = v.sap ~ (1 | tree) + period,
 #summary (M2)
 ```
 
-Sap flow velocity was slightly higher in the chilled group and the control group (Fig. \@ref(fig:plot-sap-flow)). However, this was already the case before the chilling started and continued after the chilling ended, suggesting that these were baseline differences and not a treatment effect. Moreover, the tendency for higher sap flow rates in control group trees continued in the following early- and mid-growing season. The estimated effect of the treatment and period interaction is negligibily small with -0.006±0.012 $mm \, s^{-1}$ and including this interactions only reduced the conditional AIC from `r round (cAIC (M1)$caic, 2)` to `r round (cAIC (M2)$caic, 2)` further suggesting that including this interaction at all only produces a marginally more probably model.  
+Sap flow velocity was consistently higher in the control group relative to the chilled group during the period with leaves (Fig. \@ref(fig:plot-sap-flow)). This was already the case before the chilling started and continued after the chilling ended, suggesting that these were baseline differences and not a treatment effect. Moreover, the tendency for higher sap flow rates in control group trees continued in the following early- and mid-growing season (Fig. S\@ref(fig:plot-sap-flow)). Using a mixed effects model the estimated effect of the treatment and period interaction only reduced the conditional AIC from `r round (cAIC (M1)$caic, 2)` to `r round (cAIC (M2)$caic, 2)`, suggesting that including this interaction at all only produces a marginally more probably model, and more importantly the estimated effect is negligibily small with -0.006±0.012 $mm \, s^{-1}$.  
 
 ``` {r plot-sap-flow, echo = FALSE, fig.show = 'hold', out.width = "50%", fig.cap = "shows the treatment group mean of the median sap flow veolocity between 11h and 14h local time for chilled (blue line) and control trees (green line) for the 2019 season (left panel) and the early- and mid-season in 2020 (right panel). The start and end of the chilling are marked with grey dashed vertical lines in the 2019 panel."}
 temp <- middaySapFlowData %>% filter (v.sap > 0) %>%

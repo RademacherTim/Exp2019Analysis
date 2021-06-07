@@ -17,6 +17,9 @@ library ('cAIC4')
 source ('plotingFunctions.R')
 ```
 
+<!-- To-do list:-->
+<!-- - include A/Ci curves and light response curves from additional control trees along Prospect Hill Rd-->
+
 \begin {center}
 \textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archive as part of the data set \href {link to data archive}{HF???}.}
 \end {center}
