@@ -6,7 +6,6 @@
 #----------------------------------------------------------------------------------------
 
 # To-do:
-# - Something is wrong with control 2.5m end of season date.
 
 # load dependencies
 #----------------------------------------------------------------------------------------
@@ -87,7 +86,7 @@ for (t in c (1, 3, 5, 8)) {
  }
 }
 
-#figure of growth over time for each chilled tree across sampling height
+# figure of growth over time for each chilled tree across sampling height
 #----------------------------------------------------------------------------------------
 layout (matrix (1:16, nrow = 4))
 for (t in c (2, 4, 6, 7)) {
@@ -145,14 +144,14 @@ for (t in c (2, 4, 6, 7)) {
 # figure of average growth over time for chilled and control trees across sampling height
 #----------------------------------------------------------------------------------------
 png (filename = './fig/Exp2019ChillingAbsoluteVolumeGrowthDynamics.png', width = 800, height = 700)
-layout (matrix (1:4, nrow = 4), heights = c (1, 1, 1,  1.35))
+layout (matrix (1:4, nrow = 4), heights = c (1, 1, 1,  1.2))
 for (h in c (4.0, 2.5, 1.5, 0.5)) {
   
   # determine panel margins
   if (h != 0.5) {
     par (mar = c (1, 6, 1, 1))
   } else {
-    par (mar = c (5, 6, 1, 1))
+    par (mar = c (4, 6, 1, 1))
   }
   
   # creat plot outline 
@@ -160,11 +159,9 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
           select (sample.date) %>% unlist () - 17897, # subtract the integer value of 2019-01-01 from 1970-01-01 origin
         y = xyloData %>% filter (treatment == 'control', sample.height == h, year == 2019) %>% 
           select (ring.width) %>% unlist (),
-        xlim = c (120, 365), ylim = c (0, 3600), 
+        xlim = c (121, 305), ylim = c (0, 3600), 
         axes = FALSE, pch = 19, las = 1, 
-        xlab = ifelse (h != 0.5, '', 'Day of the year'), 
-        ylab = '', 
-        col = 'white') 
+        xlab = '', ylab = '', col = 'white') 
   
   # add critical dates
   #--------------------------------------------------------------------------------------
@@ -174,14 +171,15 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
   # add axis
   #--------------------------------------------------------------------------------------
   if (h != 0.5) {
-    axis (side = 1, at = seq (0, 360, 60), labels = rep ('', 7))
+    axis (side = 1, at = c (91, 121, 152, 182, 213, 244, 274, 305), labels = rep ('', 8))
   } else {
-    axis (side = 1, at = seq (0, 360, 60), cex.axis = 1.4)
+    axis (side = 1, at = c (91, 121, 152, 182, 213, 244, 274, 305), 
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'), cex.axis = 1.4)
   }  
   axis (side = 2, at = seq (0, 3000, 1000), labels = 0:3, las = 1, 
         cex.axis = 1.4)
   mtext (side = 2, line = 4, 
-         text = expression (paste ('Volume growth (mm)',sep = '')), 
+         text = expression (paste ('Cumulative radial growth (mm)',sep = '')), 
          at = 2000, cex = 0.7)
   
   # add monotonic GAM for treatment 

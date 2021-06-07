@@ -6,6 +6,7 @@
 # load libraries
 #----------------------------------------------------------------------------------------
 if (!existsFunction ('as_datetime')) library ('lubridate')
+if (!existsFunction ('%>%')) library ('tidyverse')
 
 # source temperature data
 #----------------------------------------------------------------------------------------
@@ -21,6 +22,7 @@ summaryTemp <- tempData %>%
              .groups = 'drop') %>% 
   filter (datetime < as_datetime ('2019-07-18')) %>%
   arrange () 
+
 # There are a few value in earlier July when only one sensor at 2.0m worked and the 
 # standard deviation is resultingly NA, below we set those to 0 to be able to plot the 
 # polygon for standard deviation nonetheless
@@ -55,9 +57,11 @@ for (h in c (2.0, 1.5, 1.0)) {
            lty = 0, col = addOpacity (tColours [['colour']] [5], 0.3))
   
   # add desired chilling zone
-  rect (xleft = as_datetime ('2019-05-29 12:00:00'), xright = as_datetime ('2019-07-10 12:00:00'),
-        ybottom = 0, ytop = 5, col = addOpacity ('#666666', 0.3), lty = 0)
-  
+  if (h != 1.5) {
+    rect (xleft = as_datetime ('2019-05-29 12:00:00'), xright = as_datetime ('2019-07-10 12:00:00'),
+          ybottom = 0, ytop = 5, col = addOpacity ('#666666', 0.3), lty = 0)
+  }
+
   # add critical dates
   res <- criticalDates ('chilled')
   
@@ -66,7 +70,7 @@ for (h in c (2.0, 1.5, 1.0)) {
     con <- summaryTemp [['treatment']] == 'air' & summaryTemp [['height']] == 1.5
     lines (x = summaryTemp [['datetime']] [con], 
            y = summaryTemp [['meanTemp']] [con],
-           col = tColours [['colour']] [7])
+           col = tColours [['colour']] [7], lwd = 2)
   }
   
   # add control trees

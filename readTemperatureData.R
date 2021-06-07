@@ -37,7 +37,8 @@ tempData <- tempData  %>%
              t.acer.08.2p0m = mean (t.acer.08.2p0m , na.rm = TRUE),
              t.acer.08.1p0m = mean (t.acer.08.1p0m , na.rm = TRUE),
              t.misc1 = mean (t.misc1 , na.rm = TRUE),
-             t.misc2 = mean (t.misc2 , na.rm = TRUE))
+             t.misc2 = mean (t.misc2 , na.rm = TRUE),
+             .groups = 'drop')
 
 # convert datetime back from factor to datetime
 #----------------------------------------------------------------------------------------
@@ -72,7 +73,7 @@ addTempData [['datetime']] <- addTempData [['datetime']] %>%
 #----------------------------------------------------------------------------------------
 addTempData <- addTempData %>%
   group_by (tree, datetime = cut (datetime, breaks = '15 min')) %>% 
-  summarise (t.1p5m = mean (t.1p5m, na.rm = TRUE)) %>% ungroup %>%
+  summarise (t.1p5m = mean (t.1p5m, na.rm = TRUE), .groups = 'drop') %>%
   mutate (datetime = as_datetime (datetime))
 
 # wrangle data for compatibility with temperature data in wide format

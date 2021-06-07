@@ -229,4 +229,33 @@ mean (climData %>% select (airt) %>% unlist ())
 sd (climData %>% select (airt) %>% unlist ())
 mean (climData %>% select (prec) %>% unlist ())
 sd (climData %>% select (prec) %>% unlist ())
+
+# correlation of air temperature and control tree phloem temperature at 1.5m
+#----------------------------------------------------------------------------------------
+controlData <- tempData %>% 
+  filter (treatment == 'control', height == 1.5, datetime < as_datetime ('2019-12-31')) %>% 
+  group_by (datetime, treatment) %>% 
+  summarise (controlTemp = mean (temp, na.rm = TRUE), .groups = 'drop')
+airData <- tempData %>% 
+  filter (treatment == 'air', height == 1.5, datetime < as_datetime ('2019-12-31')) %>% 
+  group_by (datetime, treatment) %>% 
+  summarise (airTemp = mean (temp, na.rm = TRUE), .groups = 'drop')
+corData <- left_join  (airData, controlData, by = 'datetime') %>% select (-treatment.x, -treatment.y)
+cor (x = corData [['airTemp']], 
+     y = corData [['controlTemp']], 
+     use = 'complete.obs')
+
+# plot scatter graph 
+#----------------------------------------------------------------------------------------
+PLOT <-  FALSE
+if (PLOT) {
+  par (mfrow = c (1, 1), mar = c (5, 5, 1, 1))
+  plot (x = corData [['airTemp']],
+        y = corData [['controlTemp']], pch = 19, 
+        xlim = c (0, 30), ylim = c (0, 30), las = 1,
+        xlab = expression (paste ('Air temperature at 1.5 m (',degree,'C)', sep = '')),
+        ylab = expression (paste ('Phloem temperature at 1.5 m (',degree,'C)', sep = '')),
+        col = addOpacity (tColours [['colour']] [1], 0.1))
+  abline (a = 0 , b = 1, col = '#666666')
+}
 #========================================================================================
