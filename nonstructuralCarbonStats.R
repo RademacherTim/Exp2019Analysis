@@ -7,12 +7,13 @@
 
 # load dependencies
 #----------------------------------------------------------------------------------------
-library ('lme4')
-source ('./plotingFunctions.R')
+if (!existsFunction ('lmer')) library ('lme4')
+if (!existsFunction ('%>%'))  library ('tidyverse')
+if (!exists ('tColours')) source ('./plotingFunctions.R')
 
 # source processed data
 #----------------------------------------------------------------------------------------
-source ('./readNonstructuralCarbonData.R') 
+if (!exists ('leafData2019')) source ('./readNonstructuralCarbonData.R') 
 
 # select only necessary columns and wrangle data to contain factors
 #----------------------------------------------------------------------------------------
@@ -99,51 +100,125 @@ rootData2019 <- rootData2019 %>%
           periodAlt = factor (periodAlt, levels = c ('chilling','non-chilling')))
 
 
-# fit mixed effects model to wood sugar concentrations with tree and height as random 
-# effects to account for idiosyncratic differences due to factors such as variations 
-# in exact azimuth or systematic difference between trees
+# fit mixed effects model to wood sugar concentrations with tree or tree and sampling 
+# height as (nested) random effects to account for idiosyncratic differences due to 
+# factors such as variations in exact azimuth or systematic difference between trees
 #----------------------------------------------------------------------------------------
+M0 <- lmer (formula = sugar ~ (1 | tree) + period + period:treatment, 
+            data = leafData2019,
+            REML = TRUE)
+summary (M0)
+cAIC (M0)
 M1 <- lmer (formula = sugar ~ (1 | tree) + date + period:treatment, 
             data = leafData2019,
             REML = TRUE)
 summary (M1)
-M2 <- lmer (formula = starch ~ (1 | tree) + date + period:treatment, 
+cAIC (M1)
+# Report the second model (M1) with date instead of period in publication
+
+M2 <- lmer (formula = starch ~ (1 | tree) + period + period:treatment, 
             data = leafData2019,
             REML = TRUE)
 summary (M2)
-
-# stems
-#----------------------------------------------------------------------------------------
-M3 <- lmer (formula = sugar ~ (tree | height) + date + period:treatment:height, 
-            data = stemData2019,
+cAIC (M2)
+M3 <- lmer (formula = starch ~ (1 | tree) + date + period:treatment, 
+            data = leafData2019,
             REML = TRUE)
 summary (M3)
-M4 <- lmer (formula = starch ~ (tree | height) + date + period:treatment:height, 
-            data = stemData2019,
+cAIC (M3)
+# Report the second model (M3) with date instead of period in publication
+
+# phloem sugar concentrations with nested tree and sample height random effect
+#----------------------------------------------------------------------------------------
+M4 <- lmer (formula = sugar ~ (1 | tree / height) + period + period:treatment:height, 
+            data = phloemData2019,
             REML = TRUE)
 summary (M4)
-
-# phloem
-#----------------------------------------------------------------------------------------
-M5 <- lmer (formula = sugar ~ (tree | height) + date + period:treatment:height, 
+cAIC (M4)
+M5 <- lmer (formula = sugar ~ (1 | tree / height) + date + period:treatment:height, 
             data = phloemData2019,
             REML = TRUE)
 summary (M5)
-M6 <- lmer (formula = starch ~ (tree | height) + date + period:treatment:height, 
+cAIC (M5)
+# Also tested model with just tree as random effect without the nested sample height, 
+# but they lost more information according to conditional AIC. Consequently, we report 
+# the first model (M4) which has a slightly lower AIC.
+
+# phloem starch
+M6 <- lmer (formula = starch ~ (1 | tree / height) + period + period:treatment:height, 
             data = phloemData2019,
             REML = TRUE)
 summary (M6)
-
-# root
-#----------------------------------------------------------------------------------------
-M7 <- lmer (formula = sugar ~ (1 | tree) + date + period:treatment, 
-            data = rootData2019,
+cAIC (M6)
+M7 <- lmer (formula = starch ~ (1 | tree / height) + date + period:treatment:height, 
+            data = phloemData2019,
             REML = TRUE)
 summary (M7)
-M8 <- lmer (formula = starch ~ (1 | tree) + date + period:treatment, 
-            data = rootData2019,
+cAIC (M7)
+# Also tested model with just tree as random effect without the nested sample height. 
+# Just using tree id as random variable had marginally lower condition AIC, but I report 
+# the second model (M7) as described above including the nested random effect for 
+# consistency.
+
+# stems sugar concentrations with nested tree and sample height random effect
+#----------------------------------------------------------------------------------------
+M8 <- lmer (formula = sugar ~ (1 | tree / height) + period + period:treatment:height, 
+            data = stemData2019,
             REML = TRUE)
 summary (M8)
+cAIC (M8)
+M9 <- lmer (formula = sugar ~ (1 | tree / height) + date + period:treatment:height, 
+            data = stemData2019,
+            REML = TRUE)
+summary (M9)
+cAIC (M9)
+# Also tested model with just tree as random effect without the nested sample height. 
+# Just using tree id as random variable had marginally lower condition AIC, but I report 
+# the second model (M9) as described above including the nested random effect for 
+# consistency.
+
+# stems starch concentrations with nested tree and sample height random effect
+#----------------------------------------------------------------------------------------
+M10 <- lmer (formula = starch ~ (1 | tree / height) + period + period:treatment:height, 
+             data = stemData2019,
+             REML = TRUE)
+summary (M10)
+cAIC (M10)
+M11 <- lmer (formula = starch ~ (1 | tree / height) + date + period:treatment:height, 
+             data = stemData2019,
+             REML = TRUE)
+summary (M11)
+cAIC (M11)
+# Report M11 which has the joint lowest conditional AIC with the same model with just 
+# tree id as random effect.
+
+# root sugar concentrations with random effect for tree id
+#----------------------------------------------------------------------------------------
+M12 <- lmer (formula = sugar ~ (1 | tree) + period + period:treatment, 
+             data = rootData2019,
+             REML = TRUE)
+summary (M12)
+cAIC (M12)
+M13 <- lmer (formula = sugar ~ (1 | tree) + date + period:treatment, 
+             data = rootData2019,
+             REML = TRUE)
+summary (M13)
+cAIC (M13)
+# Report the second model (M13) with date instead of period in publication
+
+# root starch concentrations with random effect for tree id
+#----------------------------------------------------------------------------------------
+M14 <- lmer (formula = starch ~ (1 | tree) + period + period:treatment, 
+             data = rootData2019,
+             REML = TRUE)
+summary (M14)
+cAIC (M14)
+M15 <- lmer (formula = starch ~ (1 | tree) + date + period:treatment, 
+             data = rootData2019,
+             REML = TRUE)
+summary (M15)
+cAIC (M15)
+# Report the second model (M15) with date instead of period in publication
 
 # Read leaf phenology measurements to test for differences
 #----------------------------------------------------------------------------------------
@@ -167,11 +242,11 @@ leafPhenology <- rbind (leafPhenology, tmp) %>%
   filter (species == 'Acer rubrum') %>%
   mutate (tree.id = factor (tree.id),
           treatment = factor (treatment)) %>% 
-  select (-comments, -contributor, -species)
+  select (-comments, -species)
 
 # mean bud break date by group
 #----------------------------------------------------------------------------------------
-leafPhenology %>% group_by (study, year, treatment) %>% 
+leafPhenology %>% group_by (study, year, treatment, contributor) %>% 
   summarise (meanBB = mean (bb.doy, na.rm = TRUE),
              seBB   = se   (bb.doy),
              meanLC = mean (lc.doy, na.rm = TRUE),
@@ -179,5 +254,5 @@ leafPhenology %>% group_by (study, year, treatment) %>%
              meanLF = mean (lf.doy, na.rm = TRUE),
              seLF   = se   (lf.doy), 
              .groups = 'keep') %>% 
-  print (n = 34)
+  print (n = 37)
 #========================================================================================

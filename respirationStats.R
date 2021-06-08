@@ -6,13 +6,14 @@
 
 # load dependencies
 #----------------------------------------------------------------------------------------
-library ('lme4')
-library ('tidyverse')
-library ('lubridate')
+if (!existsFunction ('lmer'))    library ('lme4')
+if (!existsFunction ('%>%'))     library ('tidyverse')
+if (!existsFunction ('as_date')) library ('lubridate')
+if (!exists ('cAIC')) library ('cAIC4')
 
 # read processed respiration data
 #----------------------------------------------------------------------------------------
-source ('./readProcessedRespData.R')
+if (!exists ('respData2019')) source ('./readProcessedRespData.R')
 
 # drop unnecessary variable
 #----------------------------------------------------------------------------------------
@@ -41,21 +42,41 @@ respDataExp2019 <- respDataExp2019 %>%
   mutate (period    = factor (period,    levels = c ('during','after','before')), 
           periodAlt = factor (periodAlt, levels = c ('chilling', 'non-chilling')))
 
-# fit mixed effects model with tree as random effect
+
+# fit model with a tree random effect and date as one fixed effect
 #----------------------------------------------------------------------------------------
-M1 <- lmer (formula = flux.raw ~ (tree | height) + date + period:treatment:height, 
+M0 <- lmer (formula = flux.raw ~ (1 | tree) + date + period:treatment:height, 
+            data = respDataExp2019,
+            REML = TRUE)
+summary (M0)
+cAIC (M0)
+
+# fit model with a nested tree and sample height random effect and date as one fixed effect
+#----------------------------------------------------------------------------------------
+M1 <- lmer (formula = flux.raw ~ (1 | tree / height) + date + period:treatment:height, 
             data = respDataExp2019,
             REML = TRUE)
 summary (M1)
+cAIC (M1)
+# This model provides the best fit and is reported in the publication.
 
-# fit mixed effects model with tree as random effect
+# fit model with a tree random effect and period as one fixed effect
 #----------------------------------------------------------------------------------------
-M2 <- lmer (formula = flux.raw ~ (tree | height) + period + period:treatment:height, 
+M2 <- lmer (formula = flux.raw ~ (1 | tree ) + period + period:treatment:height, 
             data = respDataExp2019,
             REML = TRUE)
 summary (M2)
+cAIC (M2)
 
+# fit model with a nested tree and sample height random effect and period as one fixed effect
+#----------------------------------------------------------------------------------------
+M3 <- lmer (formula = flux.raw ~ (1 | tree / height) + period + period:treatment:height, 
+            data = respDataExp2019,
+            REML = TRUE)
+summary (M3)
+cAIC (M3)
 
+# 
 respDataExp2019 %>% filter (treatment == 1) %>% select (flux.raw) %>% 
   summarise (mean = mean (flux.raw, na.rm = TRUE),
              sd = sd (flux.raw, na.rm = TRUE))

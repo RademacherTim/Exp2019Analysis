@@ -243,6 +243,8 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
             pch = ifelse (t == 'control', 19, 23),
             col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
+    print (c (t, h, exp (m$fit [305] - m$se.fit [305]), exp (m$fit [305]), 
+              exp (m$fit [305] + m$se.fit [305])))
   } # end treatment loop
     
 } # end sample height loop
@@ -285,4 +287,11 @@ mod4 <- lmer (start.of.season.doy ~ (1| tree.id) + sample.height:treatment,
 summary (mod4)
 cAIC (mod4)
 # Report model 3 which has the lowest conditional AIC.
+
+# Get mean growth across height for 2018 to see whether there were pre-existing differences
+#----------------------------------------------------------------------------------------
+xyloData %>% filter (year %in% 2014:2019) %>% 
+  group_by (year, treatment, sample.height) %>%
+  summarise (MRW = mean (ring.width, na.rm = TRUE),
+             seRW = se (ring.width)) %>% print (n = 48)
 #========================================================================================
