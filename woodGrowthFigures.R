@@ -161,7 +161,7 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
           select (sample.date) %>% unlist () - 17897, # subtract the integer value of 2019-01-01 from 1970-01-01 origin
         y = xyloData %>% filter (treatment == 'control', sample.height == h, year == 2019) %>% 
           select (ring.width) %>% unlist (),
-        xlim = c (121, 305), ylim = c (0, 3600), 
+        xlim = c (121, 274), ylim = c (0, 3600), 
         axes = FALSE, pch = 19, las = 1, 
         xlab = '', ylab = '', col = 'white') 
   
@@ -249,8 +249,8 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
             pch = ifelse (t == 'control', 19, 23),
             col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
-    print (c (t, h, exp (m$fit [305] - m$se.fit [305]), exp (m$fit [305]), 
-              exp (m$fit [305] + m$se.fit [305])))
+    # print (c (t, h, exp (m$fit [305] - m$se.fit [305]), exp (m$fit [305]), 
+    #           exp (m$fit [305] + m$se.fit [305])))
   } # end treatment loop
     
 } # end sample height loop
