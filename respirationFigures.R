@@ -4,15 +4,15 @@
 
 # load dependencies
 #----------------------------------------------------------------------------------------
-library ('lubridate')
+if (!existsFunction ('as_date')) library ('lubridate')
 
 # source ploting functions for treatment colours 
 #----------------------------------------------------------------------------------------
-source ('plotingFunctions.R')
+if (!exists ('tColours')) source ('plotingFunctions.R')
 
 # Read processed the respiration data
 #----------------------------------------------------------------------------------------
-source ('./readProcessedRespData.R')
+if (!exists ('respData2019')) source ('./readProcessedRespData.R')
 
 # Source function to convert units from RespChamberFlux package
 #----------------------------------------------------------------------------------------
@@ -131,19 +131,30 @@ for (c in 3:1) {
         col = 'white', 
         xlim = c (as_date ('2019-04-21'), as_date ('2019-11-10')),
         ylim = c (0, 3.5), axes = FALSE)
+  
+  # add x-axis
   if (c != 1) {
-    axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
-                            as_date ('2019-07-01'), as_date ('2019-08-01'),
-                            as_date ('2019-09-01'), as_date ('2019-10-01'),
-                            as_date ('2019-11-01')), 
-          labels = rep ('', 7))
+    axis (side = 1, at = c (as_date ('2019-04-01'), as_date ('2019-05-01'), 
+                            as_date ('2019-06-01'), as_date ('2019-07-01'), 
+                            as_date ('2019-08-01'), as_date ('2019-09-01'), 
+                            as_date ('2019-10-01'), as_date ('2019-11-01'), 
+                            as_date ('2019-12-01')), 
+          labels = rep ('', 9))
   } else {
-    axis (side = 1, at = c (as_date ('2019-05-01'), as_date ('2019-06-01'),
-                            as_date ('2019-07-01'), as_date ('2019-08-01'),
-                            as_date ('2019-09-01'), as_date ('2019-10-01'),
-                            as_date ('2019-11-01')), 
-          labels = c ('May','Jun','Jul','Aug','Sep','Oct','Nov'))
+    axis (side = 1, at = c (as_date ('2019-04-01'), as_date ('2019-05-01'), 
+                            as_date ('2019-06-01'), as_date ('2019-07-01'), 
+                            as_date ('2019-08-01'), as_date ('2019-09-01'), 
+                            as_date ('2019-10-01'), as_date ('2019-11-01'), 
+                            as_date ('2019-12-01')), 
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'))
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = unique (summaryRespData [['date']]),
+            y = rep (-0.15, length (unique (summaryRespData [['date']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
   }
+  
+  # add y-axis
   axis (side = 2, at = seq (0, 3.5, by = 1.0), las = 1)
   
   for (t in c (1, 5)) {

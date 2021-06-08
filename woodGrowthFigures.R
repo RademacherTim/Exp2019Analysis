@@ -170,13 +170,19 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
   res <- abline (v = lubridate::yday (c ('2018-05-29','2018-07-10')), 
                  col = '#999999', lty = 2, lwd = 1)
 
-  # add axis
+  # add axes
   #--------------------------------------------------------------------------------------
   if (h != 0.5) {
     axis (side = 1, at = c (91, 121, 152, 182, 213, 244, 274, 305), labels = rep ('', 8))
   } else {
     axis (side = 1, at = c (91, 121, 152, 182, 213, 244, 274, 305), 
           labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct','Nov'), cex.axis = 1.4)
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = yday (unique (xyloData [['sample.date']])),
+            y = rep (-145, length (unique (xyloData [['sample.date']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
+    
   }  
   axis (side = 2, at = seq (0, 3000, 1000), labels = 0:3, las = 1, 
         cex.axis = 1.4)

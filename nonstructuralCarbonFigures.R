@@ -11,11 +11,11 @@ if (!existsFunction ('as_datetime')) library ('lubridate')
 
 # source colour schemes and ploting functions
 #----------------------------------------------------------------------------------------
-source ('./plotingFunctions.R')
+if (!exists ('tColours')) source ('./plotingFunctions.R')
 
 # source processed data
 #----------------------------------------------------------------------------------------
-source ('./readNonstructuralCarbonData.R') 
+if (! exists ('stemData2019')) source ('./readNonstructuralCarbonData.R') 
 
 # plot the 2019 stem sugar concentration data by tree
 #----------------------------------------------------------------------------------------
@@ -130,18 +130,29 @@ for (h in 3:1) {
         ylab = 'wood sugar concentration (% dry weight)', las = 1,
         xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
+  
+  # added x-axis
   if (h == 1) {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = unique (summaryDataStem [['DateOfSampleCollection']]),
+            y = rep (-0.2, length (unique (summaryDataStem [['DateOfSampleCollection']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
   } else {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = rep ('', 6))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = rep ('', 7))
     
   }
+  
+  # add y-axis
   axis (side = 2, at = 0:4, las = 1)
   
   for (t in c (1, 5)) {
@@ -185,18 +196,29 @@ for (h in 3:1) {
         ylab = 'wood starch concentration (% dry weight)', las = 1,
         xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
+  
+  # added x-axis
   if (h == 1) {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = unique (summaryDataStem [['DateOfSampleCollection']]),
+            y = rep (-0.2, length (unique (summaryDataStem [['DateOfSampleCollection']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
   } else {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = rep ('', 6))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = rep ('', 7))
     
   }
+  
+  # add y-axis
   axis (side = 2, at = 0:4, las = 1)
   
   for (t in c (1, 5)) {
@@ -335,18 +357,29 @@ for (h in 3:1) {
         ylab = 'Phloem sugar concentration (% dry weight)', las = 1,
         xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
+  
+  # added x-axis
   if (h == 1) {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = unique (summaryDataPhloem [['DateOfSampleCollection']]),
+            y = rep (-0.2, length (unique (summaryDataPhloem [['DateOfSampleCollection']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex =1.5)
   } else {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = rep ('', 6))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = rep ('', 7))
     
   }
+  
+  # add y-axis
   axis (side = 2, at = 0:4, las = 1)
   
   for (t in c (1, 5)) {
@@ -389,18 +422,29 @@ for (h in 3:1) {
         ylab = 'Phloem starch concentration (% dry weight)', las = 1,
         xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
+  
+  # added x-axis
   if (h == 1) {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+    
+    # Add sampling dates as orange tick marks on x-axis
+    points (x = unique (summaryDataPhloem [['DateOfSampleCollection']]),
+            y = rep (-0.2, length (unique (summaryDataPhloem [['DateOfSampleCollection']]))), 
+            pch = 3, lwd = 3, col = '#e37222', cex =1.5)
   } else {
-    axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                            as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                            as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-          labels = rep ('', 6))
+    axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                            as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                            as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                            as_datetime ('2019-10-01')),
+          labels = rep ('', 7))
     
   }
+  
+  # add y-axis
   axis (side = 2, at = 0:4, las = 1)
   
   for (t in c (1, 5)) {
@@ -528,12 +572,22 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       ylab = 'Leaf sugar concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
       ylim = c (0, 9), col = 'white', axes = FALSE)
-axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                        as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                        as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-      labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+
+# add x-axis
+axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                        as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                        as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                        as_datetime ('2019-10-01')),
+      labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+
+# Add sampling dates as orange tick marks on x-axis
+points (x = unique (summaryDataLeaves [['DateOfSampleCollection']]),
+        y = rep (-0.38, length (unique (summaryDataLeaves [['DateOfSampleCollection']]))), 
+        pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
+
+# add y-axis
 axis (side = 2, at = seq (0, 8, by = 2), las = 1)
-  
+
 for (t in c (1, 5)) {
   con <- summaryDataLeaves [['treatment']] == t &
     !is.na (summaryDataLeaves [['meanSugar']])
@@ -606,10 +660,20 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       ylab = 'Leaf starch concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
       ylim = c (0, 9), col = 'white', axes = FALSE)
-axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                        as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                        as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-      labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+
+# add x-axis
+axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                        as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                        as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                        as_datetime ('2019-10-01')),
+      labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+
+# Add sampling dates as orange tick marks on x-axis
+points (x = unique (summaryDataLeaves [['DateOfSampleCollection']]),
+        y = rep (-0.38, length (unique (summaryDataLeaves [['DateOfSampleCollection']]))), 
+        pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
+
+# add y-axis
 axis (side = 2, at = seq (0, 8, by = 2), las = 1)
 
 for (t in c (1, 5)) {
@@ -705,10 +769,20 @@ plot (x = summaryDataRoot [['DateOfSampleCollection']] [con],
       ylab = 'Root sugar concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
       ylim = c (0, 8), col = 'white', axes = FALSE)
-axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                        as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                        as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-      labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+
+# add x-axis
+axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                        as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                        as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                        as_datetime ('2019-10-01')),
+      labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+
+# Add sampling dates as orange tick marks on x-axis
+points (x = unique (summaryDataRoot [['DateOfSampleCollection']]),
+        y = rep (-0.33, length (unique (summaryDataRoot [['DateOfSampleCollection']]))), 
+        pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
+
+# add y-axis
 axis (side = 2, at = seq (0, 8, by = 2), las = 1)
 
 for (t in c (1, 5)) {
@@ -744,10 +818,20 @@ plot (x = summaryDataRoot [['DateOfSampleCollection']] [con],
       ylab = 'Root starch concentration (% dry weight)', las = 1,
       xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-01')),
       ylim = c (0, 8), col = 'white', axes = FALSE)
-axis (side = 1, at = c (as_datetime ('2019-05-01'), as_datetime ('2019-06-01'), 
-                        as_datetime ('2019-07-01'), as_datetime ('2019-08-01'), 
-                        as_datetime ('2019-09-01'), as_datetime ('2019-10-01')),
-      labels = c ('May','Jun','Jul','Aug','Sep','Oct'))
+
+# add x-axis
+axis (side = 1, at = c (as_datetime ('2019-04-01'), as_datetime ('2019-05-01'), 
+                        as_datetime ('2019-06-01'), as_datetime ('2019-07-01'), 
+                        as_datetime ('2019-08-01'), as_datetime ('2019-09-01'), 
+                        as_datetime ('2019-10-01')),
+      labels = c ('Apr','May','Jun','Jul','Aug','Sep','Oct'))
+
+# Add sampling dates as orange tick marks on x-axis
+points (x = unique (summaryDataRoot [['DateOfSampleCollection']]),
+        y = rep (-0.33, length (unique (summaryDataRoot [['DateOfSampleCollection']]))), 
+        pch = 3, lwd = 3, col = '#e37222', cex = 1.5)
+
+# add y-axis
 axis (side = 2, at = seq (0, 8, by = 2), las = 1)
 
 for (t in c (1, 5)) {
