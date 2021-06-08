@@ -11,6 +11,8 @@
 #----------------------------------------------------------------------------------------
 if (!existsFunction ('scam')) library ('scam')
 if (!existsFunction ('%>%'))  library ('tidyverse')
+if (!existsFunction ('lmer')) library ('lme4')
+if (!existsFunction ('cAIC')) library ('cAIC4')
 
 # read in the ring width data that Patrick prepared 
 #----------------------------------------------------------------------------------------
@@ -245,4 +247,42 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
     
 } # end sample height loop
 dev.off ()
+
+# estimate the difference in growth onset between chilled and control trees
+#----------------------------------------------------------------------------------------
+tmpData <- xyloData %>% filter (year == 2019, sample.date == as_date ('2019-09-25')) %>%
+  mutate (tree.id = factor (tree.id),
+          treatment = factor (treatment),
+          sample.height = factor (sample.height))
+mod <- lmer (start.of.season.doy ~ (1| tree.id), 
+             data = tmpData,
+             REML = TRUE)
+summary (mod)
+cAIC (mod)
+mod1 <- lmer (start.of.season.doy ~ (1| tree.id) + treatment, 
+              data = tmpData,
+              REML = TRUE)
+summary (mod1)
+cAIC (mod1)
+mod1 <- lmer (start.of.season.doy ~ (1| tree.id) + sample.height, 
+              data = tmpData,
+              REML = TRUE)
+summary (mod1)
+cAIC (mod1)
+mod2 <- lmer (start.of.season.doy ~ (1| tree.id) + sample.height + treatment, 
+              data = tmpData,
+              REML = TRUE)
+summary (mod2)
+cAIC (mod2)
+mod3 <- lmer (start.of.season.doy ~ (1| tree.id) + sample.height * treatment, 
+              data = tmpData,
+              REML = TRUE)
+summary (mod3)
+cAIC (mod3)
+mod4 <- lmer (start.of.season.doy ~ (1| tree.id) + sample.height:treatment, 
+              data = tmpData,
+              REML = TRUE)
+summary (mod4)
+cAIC (mod4)
+# Report model 3 which has the lowest conditional AIC.
 #========================================================================================

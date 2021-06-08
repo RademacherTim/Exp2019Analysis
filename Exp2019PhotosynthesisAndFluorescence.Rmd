@@ -10,11 +10,11 @@ csl: "../bib/harvard.csl"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set (echo = TRUE)
-library ('tidyverse')
-library ('kableExtra')
-library ('lme4')
-library ('cAIC4')
-source ('plotingFunctions.R')
+if (!existsFunction ('%<%'))  library ('tidyverse')
+if (!existsFunction ('kbl')) library ('kableExtra')
+if (!existsFunction ('lmer')) library ('lme4')
+if (!existsFunction ('cAIC')) library ('cAIC4')
+if (!exists ('tColours')) source ('plotingFunctions.R')
 ```
 
 <!-- To-do list:-->

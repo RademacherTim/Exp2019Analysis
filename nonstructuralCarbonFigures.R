@@ -490,8 +490,7 @@ leafPhenology [['species']] [leafPhenology [['species']] == 'ACRU'] <- "Acer rub
 #----------------------------------------------------------------------------------------
 tmp <- add_column (readxl::read_excel (path = '/media/tim/dataDisk/PlantGrowth/data/leafPhenology/TimRademacherData/leafPhenologySpringAndFallHavardForest2017-2019.xlsx'),
                    contributor = 'TR')
-leafPhenology <- rbind (leafPhenology,
-                        tmp)
+leafPhenology <- rbind (leafPhenology, tmp)
 
 # summarise the leaf phenology data for by contributor and treatment
 #----------------------------------------------------------------------------------------

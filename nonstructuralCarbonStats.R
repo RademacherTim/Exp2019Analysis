@@ -145,4 +145,39 @@ M8 <- lmer (formula = starch ~ (1 | tree) + date + period:treatment,
             REML = TRUE)
 summary (M8)
 
+# Read leaf phenology measurements to test for differences
+#----------------------------------------------------------------------------------------
+# Read John O'Keefe's long-term observations for red maple (ACRU), red oak (QURU), and 
+# white pine (PIST) from the Harvard Forest Data Archive
+#----------------------------------------------------------------------------------------
+springHF <- read_csv (url ('https://harvardforest.fas.harvard.edu/data/p00/hf003/hf003-05-spring-mean-ind.csv'),
+                      col_types = cols ()) %>% filter (species =='ACRU')
+fallHF <- read_csv (url ('https://harvardforest.fas.harvard.edu/data/p00/hf003/hf003-07-fall-mean-ind.csv'),
+                    col_types = cols ()) %>% filter (species == 'ACRU')
+leafPhenology <- left_join (x = springHF, y = fallHF, by = c ('year','tree.id','species'))
+leafPhenology <- add_column (leafPhenology, study = 'Obs', treatment = 1, .before = 1) %>%
+  add_column (comments = NA, contributor = 'JOK')
+leafPhenology [['species']] [leafPhenology [['species']] == 'ACRU'] <- "Acer rubrum"
+
+# Read and join Tim Rademacher's observations from spreadsheet to leafPhenology
+#----------------------------------------------------------------------------------------
+tmp <- add_column (readxl::read_excel (path = '/media/tim/dataDisk/PlantGrowth/data/leafPhenology/TimRademacherData/leafPhenologySpringAndFallHavardForest2017-2019.xlsx', na = '-99'),
+                   contributor = 'TR')
+leafPhenology <- rbind (leafPhenology, tmp) %>% 
+  filter (species == 'Acer rubrum') %>%
+  mutate (tree.id = factor (tree.id),
+          treatment = factor (treatment)) %>% 
+  select (-comments, -contributor, -species)
+
+# mean bud break date by group
+#----------------------------------------------------------------------------------------
+leafPhenology %>% group_by (study, year, treatment) %>% 
+  summarise (meanBB = mean (bb.doy, na.rm = TRUE),
+             seBB   = se   (bb.doy),
+             meanLC = mean (lc.doy, na.rm = TRUE),
+             seLC   = se   (lc.doy),
+             meanLF = mean (lf.doy, na.rm = TRUE),
+             seLF   = se   (lf.doy), 
+             .groups = 'keep') %>% 
+  print (n = 34)
 #========================================================================================
