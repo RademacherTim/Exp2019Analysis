@@ -161,7 +161,7 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
           select (sample.date) %>% unlist () - 17897, # subtract the integer value of 2019-01-01 from 1970-01-01 origin
         y = xyloData %>% filter (treatment == 'control', sample.height == h, year == 2019) %>% 
           select (ring.width) %>% unlist (),
-        xlim = c (121, 274), ylim = c (0, 3600), 
+        xlim = c (121, 274), ylim = c (0, 3300), 
         axes = FALSE, pch = 19, las = 1, 
         xlab = '', ylab = '', col = 'white') 
   
@@ -227,11 +227,11 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
                  sd (treatmentData [['start.of.season.doy']]),
             x1 = mean (treatmentData [['start.of.season.doy']]) + 
                  sd (treatmentData [['start.of.season.doy']]), 
-            y0 = 3300 + ifelse (t == 'control', -100, 100), 
+            y0 = 3000 + ifelse (t == 'control', -100, 100), 
             col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             length = 0, angle = 90, code = 3, lwd = 2)
     points (x = mean (treatmentData [['start.of.season.doy']]), 
-            y = 3300 + ifelse (t == 'control', -100, 100), 
+            y = 3000 + ifelse (t == 'control', -100, 100), 
             pch = ifelse (t == 'control', 19, 23), 
             col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
@@ -241,11 +241,11 @@ for (h in c (4.0, 2.5, 1.5, 0.5)) {
               sd (treatmentData [['end.of.season.doy']], na.rm = TRUE),
             x1 = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE) +
               sd (treatmentData [['end.of.season.doy']], na.rm = TRUE),
-            y0 = 3300 + ifelse (t == 'control', -100, 100),
+            y0 = 3000 + ifelse (t == 'control', -100, 100),
             col = tColours [['colour']] [ifelse (t == 'control',1,5)],
             length = 0, angle = 90, code = 3, lwd = 2)
     points (x = mean (treatmentData [['end.of.season.doy']], na.rm = TRUE),
-            y = 3300 + ifelse (t == 'control', -100, 100),
+            y = 3000 + ifelse (t == 'control', -100, 100),
             pch = ifelse (t == 'control', 19, 23),
             col = tColours [['colour']] [ifelse (t == 'control',1,5)], 
             cex = 2.5, bg = 'white', lwd = 2)
