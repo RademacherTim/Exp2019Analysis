@@ -6,10 +6,10 @@
 # load dependencies
 #----------------------------------------------------------------------------------------
 if (!existsFunction ('grayscale'))   library ('imager')
-if (!existsFunction ('image_write')) library ('magick')
+#if (!existsFunction ('image_write')) library ('magick')
 if (!existsFunction ('as_date'))     library ('lubridate')
 if (!existsFunction ('tibble'))      library ('tidyverse')
-#if (!existsFunction ('readJPEG'))  library ('jpeg')
+if (!existsFunction ('lmer'))        library ('lme4')
 
 
 # define image directory
@@ -60,14 +60,20 @@ data <- files %>% dplyr::left_join (ROIbounds, by = 'image.name'); rm (ROIbounds
 #----------------------------------------------------------------------------------------
 res <- 1.5 # resolution of image scans (pixels per micrometer) 
 data <- data %>% 
-  mutate (A2018ROI = ((xMax2018 - xMin2018) * (yMax2018 - yMin2018)) / res,
-          A2019ROI = ((xMax2019 - xMin2019) * (yMax2019 - yMin2019)) / res) 
+  mutate (A2018ROI = ((xMax2018 - xMin2018) * (yMax2018 - yMin2018)) / res^2,
+          A2019ROI = ((xMax2019 - xMin2019) * (yMax2019 - yMin2019)) / res^2) 
 
 # add column with percentage CWA for the 2018 and 2019 ring region of interest 
 #----------------------------------------------------------------------------------------
 data <- add_column (data, 
                     perCWA2018 = NA, 
-                    perCWA2019 = NA)
+                    perCWA2019 = NA,
+                    nVessels2018 = NA,
+                    nVessels2019 = NA)
+
+# ser grayscale threshold to determine whether a pixel is cell-wall or lumen
+#----------------------------------------------------------------------------------------
+threshold <- 0.8
 
 # loop over image names
 #----------------------------------------------------------------------------------------
@@ -81,8 +87,7 @@ for (i in 1:dim (data) [1]) {
   #--------------------------------------------------------------------------------------
   img <- imager::load.image (paste0 (iDir,'images/Exp2019/JPG/',iName))
   #img <- magick::image_read (path = paste0 (iDir,'images/Exp2019/JPG/',iName))
-  # The lower the value the whiter the image in grayscale
-
+  
   # Whether to plot the image with the regions of interest
   #--------------------------------------------------------------------------------------
   PLOT <- FALSE
@@ -137,9 +142,6 @@ for (i in 1:dim (data) [1]) {
   
   # estimate percentage of cell-wall area in image using simple threshold
   #--------------------------------------------------------------------------------------
-  threshold <- 0.8
-  # TR I could go several thresholds and choose the one before there is a big jump in "cell-wal area", which would correspond to when vessels are included
-  
   if (!is.na (imgROI2018.g [1])) {
     thrImg2018 <- imgROI2018.g %>% threshold (thr = threshold) #%>% 
       #plot (main = paste (i, data [['tree.id']] [i], data [['sample.height']] [i]))  
@@ -159,14 +161,100 @@ for (i in 1:dim (data) [1]) {
   # the overall results still hold up robustly.
   
   
-  # Need to label the vessels to count how many there are in each image
+  # De-noise image to make blob detection easier
   #--------------------------------------------------------------------------------------
+  if (!is.na (imgROI2018.g [1])) imgROI2018.d <- imgROI2018.g %>% isoblur (12)
+  if (!is.na (imgROI2019.g [1])) imgROI2019.d <- imgROI2019.g %>% isoblur (12)
+  
+  # apply hessian filter and label individual blobs below threshold
+  #--------------------------------------------------------------------------------------
+  dt2018 <- imhessian (imgROI2018.d) %$% { xx*yy - xy^2 } %>% 
+    threshold (thr = 0) %>% 
+    label ()
+  dt2019 <- imhessian (imgROI2019.d) %$% { xx*yy - xy^2 } %>% 
+    threshold (thr = 0) %>% 
+    label ()
+  
+  # identify the location of large (i.e., 500 micrometer^2) blobs only
+  #--------------------------------------------------------------------------------------
+  vessels2018 <- as.data.frame (dt2018) %>% 
+    dplyr::group_by (value) %>% filter (n () > 500*res^2) %>% # Only in blobs larger than 500 micrometer^2
+    dplyr::summarise (mx = mean (x), my = mean (y))
+  vessels2019 <- as.data.frame (dt2019) %>% 
+    dplyr::group_by (value) %>% filter (n () > 500*res^2) %>% # Only in blobs larger than 500 micrometer^2
+    dplyr::summarise (mx = mean (x), my = mean (y))
+  
+  # get mean brightness of 20 by 20 pixel value for each blob
+  #--------------------------------------------------------------------------------------
+  vessels2018 <- vessels2018 %>% add_column (mb = NA)
+  for (r in 1:dim (vessels2018) [1]){
+    w <- 20 # window width
+    x1 <- round (vessels2018 [['mx']] [r])
+    y1 <- round (vessels2018 [['my']] [r])
+    if (x1 < w) w <- x1
+    if (y1 < w) w <- y1
+    if (x1+w > dim (imgROI2018.d) [1]) w <- dim (imgROI2018.d) [1] - x1
+    if (y1+w > dim (imgROI2018.d) [2]) w <- dim (imgROI2018.d) [2] - y1
+    vessels2018 [['mb']] [r] <- mean (imgROI2018.d [(x1-w):(x1+w),(y1-w):(y1+w),,])  
+  }
+  vessels2019 <- vessels2019 %>% add_column (mb = NA)
+  for (r in 1:dim (vessels2019) [1]){
+    w <- 20 # window width
+    x1 <- round (vessels2019 [['mx']] [r])
+    y1 <- round (vessels2019 [['my']] [r])
+    if (x1 < w) w <- x1
+    if (y1 < w) w <- y1
+    if (x1+w > dim (imgROI2019.d) [1]) w <- dim (imgROI2019.d) [1] - x1
+    if (y1+w > dim (imgROI2019.d) [2]) w <- dim (imgROI2019.d) [2] - y1
+    vessels2019 [['mb']] [r] <- mean (imgROI2019.d [(x1-w):(x1+w),(y1-w):(y1+w),,])  
+  }
+  # filter out dark blobs
+  #--------------------------------------------------------------------------------------
+  vessels2018 <- vessels2018 %>% filter (mb > 0.8)
+  vessels2019 <- vessels2019 %>% filter (mb > 0.8)
+  
+  # Whether to plot the identified vessels
+  #--------------------------------------------------------------------------------------
+  PLOT <- TRUE
+  
+  # plot the identified blobs 
+  #--------------------------------------------------------------------------------------
+  if (PLOT) {
+    plot (imgROI2018.d, 
+          main = paste (data [['tree.id']] [i], data [['sample.height']] [i],'2018'))
+    points (vessels2018 [['mx']], vessels2018 [['my']], col ='red')
+    plot (imgROI2019.d, 
+          main = paste (data [['tree.id']] [i], data [['sample.height']] [i],'2019'))
+    points (vessels2019 [['mx']], vessels2019 [['my']], col ='red')
+  }
+  
+  # add estimated number of vessels in the regions of interest to data tibble
+  #--------------------------------------------------------------------------------------
+  data [['nVessels2018']] [i] <- dim (vessels2018) [1]
+  data [['nVessels2019']] [i] <- dim (vessels2019) [1]
+  
 } # end file loop 
 
 # add treatment to the tibble
 #----------------------------------------------------------------------------------------
 data <- data %>% 
   mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 'control','chilled'))
+
+# add vessel density (number of vessels per area, ; n per mm^2)
+#----------------------------------------------------------------------------------------
+data <- data %>%
+  mutate (rhoV2018 = nVessels2018 / (A2018ROI / 1e6),
+          rhoV2019 = nVessels2019 / (A2019ROI / 1e6))
+
+# add a scaled column of region of interest as a rough proxy for growth
+#----------------------------------------------------------------------------------------
+data <-  data %>%
+  mutate (A2018ROI.s = scale (A2018ROI),
+          A2019ROI.s = scale (A2019ROI)) %>%
+  mutate (minA2018ROI.s = min (A2018ROI.s, na.rm = TRUE),
+          minA2019ROI.s = min (A2019ROI.s, na.rm = TRUE)) %>%
+  mutate (A2018ROI.sc = A2018ROI.s - minA2018ROI.s,
+          A2019ROI.sc = A2019ROI.s - minA2019ROI.s)
 
 # plot 2018 versus 2019 cell-wall area estimate coloured by treatment
 #----------------------------------------------------------------------------------------
@@ -212,7 +300,7 @@ points (x = data [['perCWA2018']] [con],
 con <- data [['treatment']] == 'control'
 plot (x = data [['A2018ROI']] [con] / 1e6,
       y = data [['perCWA2018']] [con],
-      xlim = c (0, 15.0), 
+      xlim = c (0, 10), 
       ylim = c (10, 60), las = 1,
       pch = 19, 
       xlab = expression (paste ('ROI area (',mm^2,')', sep = '')), 
@@ -233,9 +321,59 @@ points (x = data [['A2019ROI']] [con] / 1e6,
         pch = 23, lwd = 2,
         col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
 
+# plot vessel density
+#----------------------------------------------------------------------------------------
+par (mar = c (5, 5, 1, 1))
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 0.5
+plot (x = data [['rhoV2018']] [con],
+      y = data [['rhoV2019']] [con],
+      xlim = c (0, 120), 
+      ylim = c (0, 120), las = 1,
+      pch = 19, cex = 2*data [['A2019ROI.sc']] [con],
+      xlab = expression (paste ('2018 vessel density (n ',mm^-2,')', sep = '')), 
+      ylab = expression (paste ('2019 vessel density (n ',mm^-2,')', sep = '')),
+      col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 1.5
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 19, cex = 2*data [['A2019ROI.sc']], 
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 2.5
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 19, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 4.0
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 19, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+
+# Add chilled trees
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 0.5
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 23, lwd = 2, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 1.5
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 23, lwd = 2, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 2.5
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 23, lwd = 2, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 4.0
+points (x = data [['rhoV2018']] [con],
+        y = data [['rhoV2019']] [con],
+        pch = 23, lwd = 2, cex = 2*data [['A2019ROI.sc']],
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+
+# Especially higher up the stem more growth 
+
 # Check whether there are statistical differences
 #----------------------------------------------------------------------------------------
 
-# Also detect the number of vessels and convert it to a vessel density for comparison
-#----------------------------------------------------------------------------------------
 #========================================================================================
