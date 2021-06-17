@@ -137,7 +137,7 @@ for (i in 1:dim (data) [1]) {
   
   # estimate percentage of cell-wall area in image using simple threshold
   #--------------------------------------------------------------------------------------
-  threshold <- 0.7
+  threshold <- 0.8
   # TR I could go several thresholds and choose the one before there is a big jump in "cell-wal area", which would correspond to when vessels are included
   
   if (!is.na (imgROI2018.g [1])) {
@@ -162,4 +162,80 @@ for (i in 1:dim (data) [1]) {
   # Need to label the vessels to count how many there are in each image
   #--------------------------------------------------------------------------------------
 } # end file loop 
+
+# add treatment to the tibble
+#----------------------------------------------------------------------------------------
+data <- data %>% 
+  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 'control','chilled'))
+
+# plot 2018 versus 2019 cell-wall area estimate coloured by treatment
+#----------------------------------------------------------------------------------------
+par (mar = c (5, 5, 1, 1))
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 0.5
+plot (x = data [['perCWA2018']] [con],
+      y = data [['perCWA2019']] [con],
+      xlim = c (10, 55), ylim = c (10, 55), 
+      xlab = 'Percentage cell-wall area in 2018 ring (%)', 
+      ylab = 'Percentage cell-wall area in 2019 ring (%)', pch = 19, 
+      col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 0.5
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 1.5
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 19, 
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 1.5
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 2.5
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 19, 
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 2.5
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+con <- data [['treatment']] == 'control' & data [['sample.height']] == 4.0
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 19, 
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'chilled' & data [['sample.height']] == 4.0
+points (x = data [['perCWA2018']] [con],
+        y = data [['perCWA2019']] [con], pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+
+# plot percentage cell-wall area against size of the region of interest
+#----------------------------------------------------------------------------------------
+con <- data [['treatment']] == 'control'
+plot (x = data [['A2018ROI']] [con] / 1e6,
+      y = data [['perCWA2018']] [con],
+      xlim = c (0, 15.0), 
+      ylim = c (10, 60), las = 1,
+      pch = 19, 
+      xlab = expression (paste ('ROI area (',mm^2,')', sep = '')), 
+      ylab = 'Percentage cell-wall area (%)',
+      col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+points (x = data [['A2019ROI']] [con] / 1e6,
+        y = data [['perCWA2019']] [con],
+        pch = 1,
+        col = tColours [['colour']] [tColours [['treatment']] == 'control'])
+con <- data [['treatment']] == 'chilled'
+points (x = data [['A2018ROI']] [con] / 1e6,
+        y = data [['perCWA2018']] [con],
+        pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'],
+        bg = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+points (x = data [['A2019ROI']] [con] / 1e6,
+        y = data [['perCWA2019']] [con],
+        pch = 23, lwd = 2,
+        col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
+
+# Check whether there are statistical differences
+#----------------------------------------------------------------------------------------
+
+# Also detect the number of vessels and convert it to a vessel density for comparison
+#----------------------------------------------------------------------------------------
 #========================================================================================
