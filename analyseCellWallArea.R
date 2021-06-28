@@ -10,6 +10,7 @@ if (!existsFunction ('grayscale'))   library ('imager')
 if (!existsFunction ('as_date'))     library ('lubridate')
 if (!existsFunction ('tibble'))      library ('tidyverse')
 if (!existsFunction ('lmer'))        library ('lme4')
+if (!existsFunction ('cAIC'))        library ('cAIC4')
 
 
 # define image directory
@@ -96,15 +97,15 @@ for (i in 1:dim (data) [1]) {
   #--------------------------------------------------------------------------------------
   if (PLOT) {
     plot (img)
-    rect (xleft   = files [['xMin2018']] [i],
-          xright  = files [['xMax2018']] [i],
-          ybottom = files [['yMin2018']] [i],
-          ytop    = files [['yMax2018']] [i],
+    rect (xleft   = data [['xMin2018']] [i],
+          xright  = data [['xMax2018']] [i],
+          ybottom = data [['yMin2018']] [i],
+          ytop    = data [['yMax2018']] [i],
           border  = tColours [['colour']] [3], lwd = 2)
-    rect (xleft   = files [['xMin2019']] [i],
-          xright  = files [['xMax2019']] [i],
-          ybottom = files [['yMin2019']] [i],
-          ytop    = files [['yMax2019']] [i],
+    rect (xleft   = data [['xMin2019']] [i],
+          xright  = data [['xMax2019']] [i],
+          ybottom = data [['yMin2019']] [i],
+          ytop    = data [['yMax2019']] [i],
           border  = tColours [['colour']] [6], lwd = 2)
   }
 
@@ -215,7 +216,7 @@ for (i in 1:dim (data) [1]) {
   
   # Whether to plot the identified vessels
   #--------------------------------------------------------------------------------------
-  PLOT <- TRUE
+  PLOT <- FALSE
   
   # plot the identified blobs 
   #--------------------------------------------------------------------------------------
@@ -262,7 +263,7 @@ par (mar = c (5, 5, 1, 1))
 con <- data [['treatment']] == 'control' & data [['sample.height']] == 0.5
 plot (x = data [['perCWA2018']] [con],
       y = data [['perCWA2019']] [con],
-      xlim = c (10, 55), ylim = c (10, 55), 
+      xlim = c (10, 55), ylim = c (10, 55), las = 1,
       xlab = 'Percentage cell-wall area in 2018 ring (%)', 
       ylab = 'Percentage cell-wall area in 2019 ring (%)', pch = 19, 
       col = tColours [['colour']] [tColours [['treatment']] == 'control'])
@@ -373,7 +374,99 @@ points (x = data [['rhoV2018']] [con],
 
 # Especially higher up the stem more growth 
 
-# Check whether there are statistical differences
-#----------------------------------------------------------------------------------------
 
+# Convert data into long format
+#----------------------------------------------------------------------------------------
+tmpData <- data %>% 
+  select (tree.id, treatment, sample.height, sample.date, perCWA2018, perCWA2019) %>%
+  pivot_longer (cols = 5:6,
+                names_to = 'year',
+                names_prefix = 'perCWA',
+                values_to = 'perCWA')
+tmpData1 <- data %>% 
+    select (tree.id, treatment, sample.height, sample.date, rhoV2018, rhoV2019) %>%
+    pivot_longer (cols = 5:6,
+                  names_to = 'year',
+                  names_prefix = 'rhoV',
+                  values_to = 'rhoV')
+tmpData <- tmpData %>% 
+  left_join (tmpData1, by = c ('tree.id','treatment','sample.height','sample.date','year')) %>%
+  mutate (tree.id = factor (tree.id),
+          treatment = factor (treatment),
+          sample.height = factor (sample.height),
+          year = factor (year))
+rm (tmpData1)
+
+# Check whether there was a treatment effect on vessel density
+#----------------------------------------------------------------------------------------
+mod0 <- lmer (rhoV ~ (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod0)
+cAIC (mod0) # conditional AIC = 568.28
+mod1 <- lmer (rhoV ~ sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod1)
+cAIC (mod1) # conditional AIC = 572.60
+mod2 <- lmer (rhoV ~ year + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod2)
+cAIC (mod2) # conditional AIC = 559.38
+mod3 <- lmer (rhoV ~ year:treatment + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod3)
+cAIC (mod3) # conditional AIC = 560.59
+# mod3: Chilled tree showed substantially lower vessel density in 2019 compared to 2018 
+# and control trees
+mod4 <- lmer (rhoV ~ year:treatment:sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod4)
+cAIC (mod4) # conditional AIC = 568.45
+mod5 <- lmer (rhoV ~ year + year:treatment:sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod5)
+cAIC (mod5) # conditional AIC = 568.45
+# mod5: When broken down by sample height chilled trees have substantially lower vessel 
+#       density in 2019 at 4.0 m, slightly lower at 2.5 m relative to control, but no 
+#       clear changes at 1.5 m. At 0.5 m, the vessel density increase in chilled trees. 
+#       1.5 m most closely follows the control group.
+
+# Check whether there was a treatment effect on percentage cell-wall area
+#----------------------------------------------------------------------------------------
+mod0 <- lmer (perCWA ~ (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod0)
+cAIC (mod0) # conditional AIC = 417.50
+mod1 <- lmer (perCWA ~ sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod1)
+cAIC (mod1) # conditional AIC = 421.28
+mod2 <- lmer (perCWA ~ year + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod2)
+cAIC (mod2) # conditional AIC = 397.30
+mod3 <- lmer (perCWA ~ year:treatment + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod3)
+cAIC (mod3) # conditional AIC = 399.07
+mod4 <- lmer (perCWA ~ year:treatment:sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod4)
+cAIC (mod4) # conditional AIC = 403.05
+mod5 <- lmer (perCWA ~ year + year:treatment:sample.height + (1 | tree.id), 
+              data = tmpData,
+              REML = TRUE)
+summary (mod5)
+cAIC (mod5) # conditional AIC = 403.05
+# No clear differences in percentage cell-wall area for me!!! 
 #========================================================================================

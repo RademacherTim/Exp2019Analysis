@@ -299,5 +299,6 @@ cAIC (mod4)
 xyloData %>% filter (year %in% 2014:2019) %>% 
   group_by (year, treatment, sample.height) %>%
   summarise (MRW = mean (ring.width, na.rm = TRUE),
-             seRW = se (ring.width)) %>% print (n = 48)
+             seRW = se (ring.width), .groups = 'drop') %>% 
+  print (n = 48)
 #========================================================================================
