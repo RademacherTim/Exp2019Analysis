@@ -355,7 +355,7 @@ for (h in 3:1) {
         y = summaryDataPhloem [['meanSugar']] [con], 
         typ = 'l', xlab = '', 
         ylab = 'Phloem sugar concentration (% dry weight)', las = 1,
-        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
+        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-12')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
   
   # added x-axis
@@ -420,7 +420,7 @@ for (h in 3:1) {
         y = summaryDataPhloem [['meanStarch']] [con], 
         typ = 'l', xlab = '', 
         ylab = 'Phloem starch concentration (% dry weight)', las = 1,
-        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
+        xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-12')),
         ylim = c (0, 4.5), col = 'white', axes = FALSE)
   
   # added x-axis
@@ -538,8 +538,8 @@ leafPhenology <- rbind (leafPhenology, tmp)
 
 # summarise the leaf phenology data for by contributor and treatment
 #----------------------------------------------------------------------------------------
-summaryPhenology <- leafPhenology %>% filter (year == 2019) %>% 
-  group_by (study, treatment) %>% 
+summaryPhenology <- leafPhenology %>% filter (year %in% 2018:2019 & species == 'Acer rubrum') %>% 
+  group_by (study, treatment, year) %>% 
   summarise (mean.bb.doy = mean (bb.doy, na.rm = TRUE),
              sd.bb.doy   = sd   (bb.doy, na.rm = TRUE),
              mean.lf.doy = mean (lf.doy, na.rm = TRUE),
@@ -570,7 +570,7 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       y = summaryDataLeaves [['meanSugar']] [con], 
       typ = 'l', xlab = '', 
       ylab = 'Leaf sugar concentration (% dry weight)', las = 1,
-      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
+      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-11')),
       ylim = c (0, 9), col = 'white', axes = FALSE)
 
 # add x-axis
@@ -598,7 +598,7 @@ for (t in c (1, 5)) {
            col = addOpacity (tColours [['colour']] [t], 0.3), lty = 0)
   lines (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
          y = summaryDataLeaves [['meanSugar']] [con], 
-         lty = ifelse (h == 1, 3, ifelse (h == 2, 2, 1)), 
+         lty = 1, 
          lwd = 2, col = tColours [['colour']] [t])
   
   
@@ -611,14 +611,16 @@ for (t in c (1, 5)) {
           x1 = as_datetime ((summaryPhenology [['mean.bb.doy']] [con] + 
                                summaryPhenology [['sd.bb.doy']] [con])*60*60*24, 
                             origin = '2019-01-01'),
-          y0 = 8.7 + ifelse (t == 1, -0.1, 0.1),
-          col = tColours [['colour']] [ifelse (t == 1, 1, 5)],
+          y0 = c (7.7 + ifelse (t == 1, -0.1, 0.1),
+                  8.7 + ifelse (t == 1, -0.1, 0.1)),
+          col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]),
           length = 0, angle = 90, code = 3, lwd = 2)
   points (x = as_datetime (summaryPhenology [['mean.bb.doy']] [con]*60*60*24, 
                            origin = '2019-01-01'),
-          y = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          y = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
+                 8.7 + ifelse (t == 1, -0.1, 0.1)),
           pch = ifelse (t == 1, 19, 23),
-          col = tColours [['colour']] [ifelse (t == 1, 1, 5)], 
+          col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           cex = 1.5, bg = 'white', lwd = 2)
   
   # add leaf fall
@@ -629,16 +631,18 @@ for (t in c (1, 5)) {
           x1 = as_datetime ((summaryPhenology [['mean.lf.doy']] [con] + 
                                summaryPhenology [['sd.lf.doy']] [con])*60*60*24, 
                             origin = '2019-01-01'),
-          y0 = 8.7 + ifelse (t == 1, -0.1, 0.1),
-          col = tColours [['colour']] [ifelse (t == 1, 1, 5)],
+          y0 = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
+                  8.7 + ifelse (t == 1, -0.1, 0.1)),
+          col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           length = 0, angle = 90, code = 3, lwd = 2)
   points (x = as_datetime (summaryPhenology [['mean.lf.doy']] [con]*60*60*24, 
                            origin = '2019-01-01'),
-          y = 8.7 + ifelse (t == 1, -0.1, 0.1),
+          y = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
+                 8.7 + ifelse (t == 1, -0.1, 0.1)),
           pch = ifelse (t == 1, 19, 23),
-          col = tColours [['colour']] [ifelse (t == 1, 1, 5)], 
+          col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           cex = 1.5, bg = 'white', lwd = 2)
-  }
+}
   
 # add critical dates
 #--------------------------------------------------------------------------------------
@@ -658,7 +662,7 @@ plot (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
       y = summaryDataLeaves [['meanStarch']] [con], 
       typ = 'l', xlab = '', 
       ylab = 'Leaf starch concentration (% dry weight)', las = 1,
-      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-10')),
+      xlim = c (as_datetime ('2019-04-10'), as_datetime ('2019-10-12')),
       ylim = c (0, 9), col = 'white', axes = FALSE)
 
 # add x-axis
