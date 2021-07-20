@@ -611,14 +611,12 @@ for (t in c (1, 5)) {
           x1 = as_datetime ((summaryPhenology [['mean.bb.doy']] [con] + 
                                summaryPhenology [['sd.bb.doy']] [con])*60*60*24, 
                             origin = '2019-01-01'),
-          y0 = c (7.7 + ifelse (t == 1, -0.1, 0.1),
-                  8.7 + ifelse (t == 1, -0.1, 0.1)),
+          y0 = c (8.7, 7.7) + ifelse (t == 1, -0.1, 0.1),
           col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]),
           length = 0, angle = 90, code = 3, lwd = 2)
   points (x = as_datetime (summaryPhenology [['mean.bb.doy']] [con]*60*60*24, 
                            origin = '2019-01-01'),
-          y = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
-                 8.7 + ifelse (t == 1, -0.1, 0.1)),
+          y = c (8.7, 7.7) + ifelse (t == 1, -0.1, 0.1),
           pch = ifelse (t == 1, 19, 23),
           col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           cex = 1.5, bg = 'white', lwd = 2)
@@ -631,14 +629,12 @@ for (t in c (1, 5)) {
           x1 = as_datetime ((summaryPhenology [['mean.lf.doy']] [con] + 
                                summaryPhenology [['sd.lf.doy']] [con])*60*60*24, 
                             origin = '2019-01-01'),
-          y0 = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
-                  8.7 + ifelse (t == 1, -0.1, 0.1)),
+          y0 = c (8.7, 7.7) + ifelse (t == 1, -0.1, 0.1), 
           col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           length = 0, angle = 90, code = 3, lwd = 2)
   points (x = as_datetime (summaryPhenology [['mean.lf.doy']] [con]*60*60*24, 
                            origin = '2019-01-01'),
-          y = c (7.7 + ifelse (t == 1, -0.1, 0.1), 
-                 8.7 + ifelse (t == 1, -0.1, 0.1)),
+          y = c (8.7, 7.7) + ifelse (t == 1, -0.1, 0.1),
           pch = ifelse (t == 1, 19, 23),
           col = c ('#999999', tColours [['colour']] [ifelse (t == 1, 1, 5)]), 
           cex = 1.5, bg = 'white', lwd = 2)
@@ -689,8 +685,7 @@ for (t in c (1, 5)) {
                   rev (summaryDataLeaves [['meanStarch']] [con] + summaryDataLeaves [['seStarch']] [con])),
            col = addOpacity (tColours [['colour']] [t], 0.3), lty = 0)
   lines (x = summaryDataLeaves [['DateOfSampleCollection']] [con],
-         y = summaryDataLeaves [['meanStarch']] [con], 
-         lty = ifelse (h == 1, 3, ifelse (h == 2, 2, 1)), 
+         y = summaryDataLeaves [['meanStarch']] [con],  
          lwd = 2, col = tColours [['colour']] [t])
 }
 
