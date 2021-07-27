@@ -1,7 +1,7 @@
 ---
 title: |
   | Supplement 1: Photosynthesis and fluorescence
-date: "2021/06/02"
+date: "2021/07/27"
 output: 
   bookdown::pdf_document2: default
 bibliography: "../bib/Exp2019Chilling.bib"
@@ -33,7 +33,7 @@ Towards the end of the chilling period (i.e., last ten days of chilling; Fig. 1)
 ``` {r wrangle-data, echo = FALSE}
 # read the raw photosynthesis data
 #----------------------------------------------------------------------------------------
-photoData <- read_csv (file = './data/instantaneous_photosynthesis_Exp2019.csv',
+photoData <- read_csv (file = './data/instantaneous_photosynthesis_HF_Exp2019.csv',
                        col_types = cols ()) %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
   select (-date, -comments) %>%
@@ -44,7 +44,7 @@ photoData <- read_csv (file = './data/instantaneous_photosynthesis_Exp2019.csv',
           se.photosynthetic.rate = se (c (photosynthetic.rate.1, photosynthetic.rate.2, 
                                           photosynthetic.rate.3, photosynthetic.rate.4, 
                                           photosynthetic.rate.5)),
-          tree = factor (tree.id),
+          tree = factor (tree),
           treatment = factor (treatment),
           position = factor (position))
 
@@ -112,7 +112,7 @@ kbl (tableData,
 
 # plot instantaneous photosynthetic rates of chilled versus control trees
 #----------------------------------------------------------------------------------------
-con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'top' & photoData [['tree.id']] != 1908
+con <- photoData [['treatment']] == 'control' & photoData [['position']] == 'top' & photoData [['tree']] != 1908
 plot (x = jitter (rep (0.8, sum (con)), 2),
       y = photoData [['photosynthetic.rate']] [con],
       xlim = c (0.6, 1.4), ylim = c (0, 11), axes = FALSE,
@@ -163,19 +163,19 @@ To estiamte whether chilling affected the photosynthetic apparatus, we derives m
 # read A/Ci curves 
 #----------------------------------------------------------------------------------------
 ACiData <- 
-  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_ACi_curves_Exp2019.csv',
+  read_csv (file = './data/photosynthesis_ACi_curves_HF_Exp2019.csv',
             col_types = cols ()) %>%
   filter (study == 'Exp') %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
   select (-date, -time, -position, -study, -FTime) %>%
-  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
+  mutate (treatment = ifelse (tree %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
   rename (Photo = photosynthetic.rate, # change names for processing using plantecophys package
           Ci = ci,
           Tleaf = t.leaf,
           PARi = par.i,
           Ci_Pa = ci.Pa,
           Tleaf_K = t.air.k) %>% 
-  filter (!(tree.id == 1903 & leaf.id %in% c ('II','K','LL','MM')))
+  filter (!(tree == 1903 & leaf %in% c ('II','K','LL','MM')))
 
 # plot A/Ci data 
 #----------------------------------------------------------------------------------------
@@ -216,28 +216,28 @@ In contrast to the A/Ci curves, light response curves varied seemingly idiosyncr
 # read data for light response curves
 #----------------------------------------------------------------------------------------
 lightResponseData <- 
-  read_csv (file = './data/photosynthesis_light_response_curves_Exp2019.csv',
+  read_csv (file = './data/photosynthesis_light_response_curves_HF_Exp2019.csv',
             col_types = cols ()) %>%
   filter (study == 'Exp') %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
   select (-date, -time, -position, -study, -FTime) %>%
-  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
-  filter (!(tree.id == 1905 & leaf.id == 'L'),
-          !(tree.id == 1907 & leaf.id == 'L'))
+  mutate (treatment = ifelse (tree %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
+  filter (!(tree == 1905 & leaf == 'L'),
+          !(tree == 1907 & leaf == 'L'))
   
 # plot light response curves 
 #----------------------------------------------------------------------------------------
 par (mar = c (5, 5, 1, 1))
-plot (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+plot (x = lightResponseData [['par.i']] [lightResponseData [['treatment']] == 1],
       y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
       xlim = c (0, 1800), ylim = c (0, 13), axes = FALSE, col = 'white', pch = 19,
       xlab = 'Incident PAR', ylab = expression (paste ('Assimilation rate (',mu, mol,' ', m^-2,' ', s^-1,')', sep = ' ')))
 axis (side = 1, at = seq (0, 1500, 500))
 axis (side = 2, at = seq (0, 12, 3), las = 1)
-points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 5],
+points (x = lightResponseData [['par.i']] [lightResponseData [['treatment']] == 5],
         y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 5],
         pch = 23, col = tColours [['colour']] [4], bg = addOpacity (tColours [['colour']] [4], 0.6))
-points (x = lightResponseData [['PARi']] [lightResponseData [['treatment']] == 1],
+points (x = lightResponseData [['par.i']] [lightResponseData [['treatment']] == 1],
         y = lightResponseData [['photosynthetic.rate']] [lightResponseData [['treatment']] == 1],
         pch = 19, col = addOpacity (tColours [['colour']] [1], 0.6))
 ```
@@ -251,12 +251,12 @@ Overall, there were no stark differences in leaf fluorescence between chilled an
 ``` {r FvOverFm, echo = FALSE, out.width = "50%", fig.cap = "shows Fv/Fm measured immediately after removal and after dark-adapting each leaf for several hours for chilled trees (blue diamonds) and control trees (green dots) for leaves from the bottom (open symbols) and the top (closed symbols) of the canopy."}
 # read fluorescence data
 #----------------------------------------------------------------------------------------
-fluorescenceData <- read_csv (file = './data/leaf_fluorescence_Exp2019.csv',
+fluorescenceData <- read_csv (file = './data/leaf_fluorescence_HF_Exp2019.csv',
                               col_types = cols (
                                 study      = col_character (),
-                                tree.id    = col_number (),
+                                tree       = col_number (),
                                 treatment  = col_character (),
-                                leaf.id    = col_character (),
+                                leaf       = col_character (),
                                 position   = col_character (),
                                 Fo.1       = col_number (),
                                 Fm.1       = col_number (),
@@ -352,10 +352,10 @@ points (x = 1.2,
 
 # test whether there is a difference between chilled and control trees
 #----------------------------------------------------------------------------------------
-tmpData <- fluorescenceData %>% select (tree.id, leaf.id, treatment, position, FvOverFm.dark) %>%
+tmpData <- fluorescenceData %>% select (tree, leaf, treatment, position, FvOverFm.dark) %>%
   mutate (position = ifelse (position == 'bottom', 'bottom', 'top')) %>%
-  mutate (tree = factor (tree.id),
-          leaf = factor (leaf.id),
+  mutate (tree = factor (tree),
+          leaf = factor (leaf),
           position = factor (position),
           treatment = factor (treatment)) 
 # mod <-  lmer (formula = FvOverFm.dark ~ (1 | tree), 

@@ -43,7 +43,7 @@ files <- tibble (image.name = fileNames,
 
 # read file with region of interest boundaries for the 2018 and 2019 ring  
 #----------------------------------------------------------------------------------------
-ROIbounds <- read_csv (paste0 (iDir,'Exp2019BoundariesForRegionOfInterest.csv'), 
+ROIbounds <- read_csv (paste0 (iDir,'bundaries_ROI_HF_Exp2019.csv'), 
                        col_types = cols (
                          image.name   = col_character (),
                          xDim         = col_number (),

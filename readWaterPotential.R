@@ -10,7 +10,7 @@ library ('lubridate')
 
 # read water potential data file
 #----------------------------------------------------------------------------------------
-phi <- read_csv (file = './data/waterPotentialMeasurementsExp2019.csv', 
+phi <- read_csv (file = './data/water_potential_measurements_HF_Exp2019.csv', 
                  col_types = cols ())
 
 #========================================================================================

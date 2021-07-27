@@ -10,7 +10,7 @@ library ('lubridate')
 
 # read file
 #----------------------------------------------------------------------------------------
-tempData <- read_csv (file = './data/temperatureData_HF_Exp2019.csv', 
+tempData <- read_csv (file = './data/temperature_data_HF_Exp2019.csv', 
                       col_types = cols ())
 
 # average temperature data over 15-minute intervals
