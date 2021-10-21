@@ -663,12 +663,11 @@ mod5 <- lmer (perCWA ~ year + year:treatment:sample.height + (1 | tree.id),
               REML = TRUE)
 summary (mod5)
 cAIC (mod5) # conditional AIC = 403.05
-# Mod4: Small differences in the similar direction of vessel density with lower percentage 
-#       cell-wall area in control trees compared to chilled trees at 0.5 and 1.5, 
-#       similar percentage cell-wall area at 2.5 and insignificantly higher percentage 
-#       cell-wall area at 4.0m 
+# Mod4: Small reduction in percentage cell-wall area in control trees compared to 
+#       chilled trees at 0.5 and 1.5, similar percentage cell-wall area at 2.5 and 
+#       insignificantly higher percentage cell-wall area at 4.0m 
 
-# Check whether there was a treatment effect on percentage cell-wall area
+# Check whether there was a treatment effect on cell-wall density (% structure per micrometre)
 #----------------------------------------------------------------------------------------
 mod0 <- lmer (rhoCW ~ (1 | tree.id), 
               data = tmpData,
@@ -700,13 +699,12 @@ mod5 <- lmer (rhoCW ~ year + year:treatment:sample.height + (1 | tree.id),
               REML = TRUE)
 summary (mod5)
 cAIC (mod5) # conditional AIC = -174.41
-# Mod4: Small differences in the similar direction of vessel density and percentage 
-#       cell-wall area with lower cell-wall density in control trees compared to chilled 
+# Mod4: Small reduction of cell-wall density per micrometre in control trees compared to chilled 
 #       trees at 0.5 and 1.5, similar cell-wall density at 2.5 and insignificantly higher percentage 
 #       cell-wall area at 4.0m. 
 
 
-# Check whether there was a treatment effect on mass
+# Check whether there was a treatment effect on mass per 1cm2 cross-sectional area
 #----------------------------------------------------------------------------------------
 mod0 <- lmer (mass ~ (1 | tree.id), 
               data = tmpData,
@@ -738,10 +736,7 @@ mod5 <- lmer (mass ~ year + year:treatment:sample.height + (1 | tree.id),
               REML = TRUE)
 summary (mod5)
 cAIC (mod5) # conditional AIC = 70.53
-# Mod4: Small differences in the similar direction of vessel density and percentage 
-#       cell-wall area with lower cell-wall density in control trees compared to chilled 
-#       trees at 0.5 and 1.5, similar cell-wall density at 2.5 and insignificantly higher percentage 
-#       cell-wall area at 4.0m.
+# Mod4: Small reduction of mass per 1cm2 cross-sectional area
 
 # plot difference in mass (mass is the mass per square centimetre along the radial file)
 #----------------------------------------------------------------------------------------
