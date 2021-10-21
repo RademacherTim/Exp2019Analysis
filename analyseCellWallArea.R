@@ -43,7 +43,7 @@ files <- tibble (image.name = fileNames,
 
 # read file with region of interest boundaries for the 2018 and 2019 ring  
 #----------------------------------------------------------------------------------------
-ROIbounds <- read_csv (paste0 (iDir,'bundaries_ROI_HF_Exp2019.csv'), 
+ROIbounds <- read_csv (paste0 (iDir,'boundaries_ROI_HF_Exp2019.csv'), 
                        col_types = cols (
                          image.name   = col_character (),
                          xDim         = col_number (),
@@ -518,7 +518,7 @@ tmpData <- tmpData %>%
           year = factor (year))
 rm (tmpData1, tmpData2, tmpData3, tmpData4, tmpData5)
 
-# Check whether there was a treatment effect on vessel density
+# Check whether there was a treatment effect on ring width
 #----------------------------------------------------------------------------------------
 # mod0 <- lmer (RW ~ (1 | tree.id), 
 #               data = tmpData,
@@ -557,7 +557,7 @@ tmpData %>% group_by (year, treatment, sample.height) %>%
 tmpData %>% group_by (year, treatment) %>% 
   summarise (meanRW = mean (RW), seRW = se (RW), .groups = 'drop')
 
-# Check whether there was a treatment effect on ring width
+# Check whether there was a treatment effect on vessel density
 #----------------------------------------------------------------------------------------
 # mod0 <- lmer (rhoV ~ (1 | tree.id), 
 #               data = tmpData,
