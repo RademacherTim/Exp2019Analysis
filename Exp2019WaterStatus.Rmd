@@ -19,7 +19,7 @@ source ('plotingFunctions.R')
 ```
 
 \begin {center}
-\textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archive as part of the data set \href {link to data archive}{HF???}.}
+\textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archive.}
 \end {center}
 
 # Water status 
@@ -33,7 +33,7 @@ For the water potential measurements, we cut two small branches and five leaves 
 ``` {r read-water-potential, echo = FALSE}
 # read water potential data file
 #----------------------------------------------------------------------------------------
-phi <- read_csv (file = './data/waterPotentialMeasurementsExp2019.csv', 
+phi <- read_csv (file = './data/water_potential_measurements_HF_Exp2019.csv', 
                  col_types = cols ())
 ```
 
