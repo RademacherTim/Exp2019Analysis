@@ -97,7 +97,7 @@ text (labels = 'Branch', x = as_date ('2019-08-25'), y = -0.1, col = '#666666',
 
 ## Sapflow
 
-To monitor sap flow, we used heat-pulse sensors (East 30, Pullman, Washington, USA), which we installed at 1.5 m above the ground on the north-facing side of the stem according to manufacturers instructions. The heat-pulse method converts differences in temperature following a heat pulse to quantify the velocity of the heat pulse and translate this into an estimate of sap flow velocity [@huber_beobachtung_1932]. For this purpuse, raw temperatures were logged every 20 minutes at three depths (i.e., 5.0, 17.5, 30.0 mm) just before and one minute after a 8 second heat pulse, which were subsequently converted to sap flow velocities. 
+To monitor sap flow, we used heat-pulse sensors (East 30, Pullman, Washington, USA), which we installed at 1.5 m above the ground on the north-facing side of the stem according to manufacturers instructions. The heat-pulse method converts differences in temperature following a heat pulse to quantify the velocity of the heat pulse and translate this into an estimate of sap flow velocity [@huber_beobachtung_1932]. For this purpose, raw temperatures were logged every 20 minutes at three depths (i.e., 5.0, 17.5, 30.0 mm) just before and one minute after a 8 second heat pulse, which were subsequently converted to sap flow velocities. 
 
 ```{r read-sap-flow, echo = FALSE}
 # code chunk to read corrected sap flow files including sap flow velocity (mm s-1) and sap 

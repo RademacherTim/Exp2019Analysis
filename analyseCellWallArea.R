@@ -1,5 +1,5 @@
 #========================================================================================
-# Script to analyse the micrcorre images using a thresholdind procedure to estimate 
+# Script to analyse the micrcorre images using a thresholding procedure to estimate 
 # cell-wall area
 #----------------------------------------------------------------------------------------
 
@@ -210,12 +210,12 @@ for (i in 1:dim (data) [1]) {
   vessels2018 <- as.data.frame (dt2018) %>% 
     dplyr::group_by (value) %>% 
     dplyr::filter (n () > 500*res^2) %>% # Only in blobs larger than 500 micrometer^2
-    dplyr::summarise (mx = mean (x), my = mean (y), LA = n () / res ^2, r = sqrt (LA)) %>%
+    dplyr::summarise (mx = mean (x), my = mean (y), LA = n () / res ^2, r = sqrt (LA/ pi)) %>%
     dplyr:: filter (r > 0 & r < 100) # filter out blob with negative radius or a radius larger than 100 micrometers 
   vessels2019 <- as.data.frame (dt2019) %>% 
     dplyr::group_by (value) %>% 
     dplyr::filter (n () > 500*res^2) %>% # Only in blobs larger than 500 micrometer^2
-    dplyr::summarise (mx = mean (x), my = mean (y), LA = n () / res ^2, r = sqrt (LA)) %>%
+    dplyr::summarise (mx = mean (x), my = mean (y), LA = n () / res^2, r = sqrt (LA / pi)) %>%
     dplyr:: filter (r > 0 & r < 100) # filter out blob with negative radius or a radius larger than 100 micrometers
   
   # get mean brightness of 20 by 20 pixel value for each blob
@@ -300,7 +300,7 @@ data <-  data %>%
   mutate (A2018ROI.sc = A2018ROI.s - minA2018ROI.s,
           A2019ROI.sc = A2019ROI.s - minA2019ROI.s)
 
-# plot 2018 versus 2019 cell-wall area estimate coloured by treatment
+ # plot 2018 versus 2019 cell-wall area estimate coloured by treatment
 #----------------------------------------------------------------------------------------
 par (mar = c (5, 5, 1, 1))
 con <- data [['treatment']] == 'control' & data [['sample.height']] == 0.5
@@ -414,8 +414,6 @@ points (x = data [['rhoV2018']] [con],
         y = data [['rhoV2019']] [con],
         pch = 23, lwd = 2, cex = 2*data [['A2019ROI.sc']],
         col = tColours [['colour']] [tColours [['treatment']] == 'chilled'])
-# Especially higher up the stem more growth 
-
 
 # plot vessel size 
 #----------------------------------------------------------------------------------------
@@ -423,11 +421,11 @@ par (mar = c (5, 5, 1, 1))
 con <- data [['treatment']] == 'control' & data [['sample.height']] == 0.5
 plot (x = data [['mVesselR2018']] [con],
       y = data [['mVesselR2019']] [con],
-      xlim = c (20, 80), 
-      ylim = c (20, 80), las = 1,
+      xlim = c (0, 40), 
+      ylim = c (0, 40), las = 1,
       pch = 19, cex = 2*data [['A2019ROI.sc']] [con],
-      xlab = expression (paste ('2018 vessel density (n ',mm^-2,')', sep = '')), 
-      ylab = expression (paste ('2019 vessel density (n ',mm^-2,')', sep = '')),
+      xlab = '2018 mean vessel radius (mm)', 
+      ylab = '2019 mean vessel radius (mm)',
       col = tColours [['colour']] [tColours [['treatment']] == 'control'])
 con <- data [['treatment']] == 'control' & data [['sample.height']] == 1.5
 points (x = data [['mVesselR2018']] [con],
@@ -520,38 +518,12 @@ rm (tmpData1, tmpData2, tmpData3, tmpData4, tmpData5)
 
 # Check whether there was a treatment effect on ring width
 #----------------------------------------------------------------------------------------
-# mod0 <- lmer (RW ~ (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod0)
-# cAIC (mod0) # conditional AIC = 1091.14
-# mod1 <- lmer (RW ~ sample.height + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod1)
-# cAIC (mod1) # conditional AIC = 1095.21
-# mod2 <- lmer (RW ~ year + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod2)
-# cAIC (mod2) # conditional AIC = 1082.67
-# mod3 <- lmer (RW ~ year:treatment + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod3)
-# cAIC (mod3) # conditional AIC = 1083.83
-mod4 <- lmer (RW ~ year:treatment:sample.height + (1 | tree.id), 
+mod5 <- lmer (RW ~ year + year:treatment:sample.height + (1 | tree.id), 
               data = tmpData,
               REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = 1094.50
-# mod5 <- lmer (RW ~ year + year:treatment:sample.height + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod5)
-# cAIC (mod5) # conditional AIC = 1094.50
-# mod4: Growth differences with height were pronounced in chilled trees with less growth 
-#       lower down the stem.
+summary (mod5)
+# Growth differences with height were pronounced in chilled trees with less growth lower 
+# down the stem.
 tmpData %>% group_by (year, treatment, sample.height) %>% 
   summarise (meanRW = mean (RW), seRW = se (RW), .groups = 'drop')
 tmpData %>% group_by (year, treatment) %>% 
@@ -559,201 +531,51 @@ tmpData %>% group_by (year, treatment) %>%
 
 # Check whether there was a treatment effect on vessel density
 #----------------------------------------------------------------------------------------
-# mod0 <- lmer (rhoV ~ (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod0)
-# cAIC (mod0) # conditional AIC = 568.28
-# mod1 <- lmer (rhoV ~ sample.height + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod1)
-# cAIC (mod1) # conditional AIC = 572.60
-# mod2 <- lmer (rhoV ~ year + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod2)
-# cAIC (mod2) # conditional AIC = 559.38
-# mod3 <- lmer (rhoV ~ year:treatment + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod3)
-# cAIC (mod3) # conditional AIC = 560.59
-# mod3: Chilled tree showed substantially lower vessel density in 2019 compared to 2018 
-# and control trees
-mod4 <- lmer (rhoV ~ year:treatment:sample.height + (1 | tree.id), 
+mod5 <- lmer (rhoV ~ year + year:treatment:sample.height + (1 | tree.id),
               data = tmpData,
               REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = 568.45
-# mod5 <- lmer (rhoV ~ year + year:treatment:sample.height + (1 | tree.id), 
-#               data = tmpData,
-#               REML = TRUE)
-# summary (mod5)
-# cAIC (mod5) # conditional AIC = 568.45
-# mod4: When broken down by sample height chilled trees have substantially lower vessel 
-#       density in 2019 at 4.0 m, slightly lower at 2.5 m relative to control, but no 
-#       clear changes at 1.5 m. At 0.5 m, the vessel density increase in chilled trees. 
-#       1.5 m most closely follows the control group.
+summary (mod5)
+# When broken down by sample height chilled trees have substantially lower vessel 
+# density in 2019 at 4.0 m, slightly lower at 2.5 m relative to control, but no clear 
+# changes at 1.5 m. At 0.5 m, the vessel density increase in chilled trees. 1.5 m most 
+# closely follows the control group.
 
 # Check whether there was a treatment effect on vessel size
 #----------------------------------------------------------------------------------------
-mod0 <- lmer (rV ~ (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod0)
-cAIC (mod0) # conditional AIC = 355.94
-mod1 <- lmer (rV ~ sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod1)
-cAIC (mod1) # conditional AIC = 353.53
-mod2 <- lmer (rV ~ year + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod2)
-cAIC (mod2) # conditional AIC = 338.16
-mod3 <- lmer (rV ~ year:treatment + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod3)
-cAIC (mod3) # conditional AIC = 340.36
-mod4 <- lmer (rV ~ year:treatment:sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = 344.28
 mod5 <- lmer (rV ~ year + year:treatment:sample.height + (1 | tree.id), 
               data = tmpData,
               REML = TRUE)
 summary (mod5)
-cAIC (mod5) # conditional AIC = 344.28
-# mod5: Overall the effects on vessel size appear to be marginal! Which was visually 
-#       confirmed.
+# Overall the effects on vessel size appear to be marginal! Which was visually confirmed.
 
 # Check whether there was a treatment effect on percentage cell-wall area
 #----------------------------------------------------------------------------------------
-mod0 <- lmer (perCWA ~ (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod0)
-cAIC (mod0) # conditional AIC = 417.50
-mod1 <- lmer (perCWA ~ sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod1)
-cAIC (mod1) # conditional AIC = 421.28
-mod2 <- lmer (perCWA ~ year + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod2)
-cAIC (mod2) # conditional AIC = 397.30
-mod3 <- lmer (perCWA ~ year:treatment + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod3)
-cAIC (mod3) # conditional AIC = 399.07
-mod4 <- lmer (perCWA ~ year:treatment:sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = 403.05
 mod5 <- lmer (perCWA ~ year + year:treatment:sample.height + (1 | tree.id), 
               data = tmpData,
               REML = TRUE)
 summary (mod5)
-cAIC (mod5) # conditional AIC = 403.05
-# Mod4: Small reduction in percentage cell-wall area in control trees compared to 
-#       chilled trees at 0.5 and 1.5, similar percentage cell-wall area at 2.5 and 
-#       insignificantly higher percentage cell-wall area at 4.0m 
+# Small reduction in percentage cell-wall area in control trees compared to chilled 
+# trees at 0.5 and 1.5, similar percentage cell-wall area at 2.5 and insignificantly 
+# higher percentage cell-wall area at 4.0m 
 
 # Check whether there was a treatment effect on cell-wall density (% structure per micrometre)
 #----------------------------------------------------------------------------------------
-mod0 <- lmer (rhoCW ~ (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod0)
-cAIC (mod0) # conditional AIC = -154.98
-mod1 <- lmer (rhoCW ~ sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod1)
-cAIC (mod1) # conditional AIC = -150.81
-mod2 <- lmer (rhoCW ~ year + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod2)
-cAIC (mod2) # conditional AIC = -177.80
-mod3 <- lmer (rhoCW ~ year:treatment + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod3)
-cAIC (mod3) # conditional AIC = -175.49
-mod4 <- lmer (rhoCW ~ year:treatment:sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = -174.41
 mod5 <- lmer (rhoCW ~ year + year:treatment:sample.height + (1 | tree.id), 
               data = tmpData,
               REML = TRUE)
 summary (mod5)
-cAIC (mod5) # conditional AIC = -174.41
-# Mod4: Small reduction of cell-wall density per micrometre in control trees compared to chilled 
-#       trees at 0.5 and 1.5, similar cell-wall density at 2.5 and insignificantly higher percentage 
-#       cell-wall area at 4.0m. 
+# Small reduction of cell-wall density per micrometre in control trees compared to 
+# chilled trees at 0.5 and 1.5, similar cell-wall density at 2.5 and insignificantly 
+# higher percentage cell-wall area at 4.0m. 
 
 
 # Check whether there was a treatment effect on mass per 1cm2 cross-sectional area
 #----------------------------------------------------------------------------------------
-mod0 <- lmer (mass ~ (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod0)
-cAIC (mod0) # conditional AIC = 62.93
-mod1 <- lmer (mass ~ sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod1)
-cAIC (mod1) # conditional AIC = 67.71
-mod2 <- lmer (mass ~ year + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod2)
-cAIC (mod2) # conditional AIC = 59.44
-mod3 <- lmer (mass ~ year:treatment + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod3)
-cAIC (mod3) # conditional AIC = 60.05
-mod4 <- lmer (mass ~ year:treatment:sample.height + (1 | tree.id), 
-              data = tmpData,
-              REML = TRUE)
-summary (mod4)
-cAIC (mod4) # conditional AIC = 70.53
 mod5 <- lmer (mass ~ year + year:treatment:sample.height + (1 | tree.id), 
               data = tmpData,
               REML = TRUE)
 summary (mod5)
-cAIC (mod5) # conditional AIC = 70.53
-# Mod4: Small reduction of mass per 1cm2 cross-sectional area
-
-# plot difference in mass (mass is the mass per square centimetre along the radial file)
-#----------------------------------------------------------------------------------------
-boxplot (rhoCW ~ sample.height + treatment, data = tmpData %>% filter (year == 2019))
-
-par (mar = c (5,5,1,1))
-con <- tmpData [['year']] == 2019 & tmpData [['treatment']] == 'control'
-plot (x = tmpData [['sampleHeight']] [con], 
-      y = tmpData [['mass']] [con] / 1000,
-      las = 1, pch = 19, col = tColours [['colour']] [1],
-      xlim = c (0, 4.5), ylim = c (0, 3),
-      xlab = 'Sample height (m)', 
-      ylab = expression (paste ('Mass (g ',cm^2,' along the radial file)',sep = ''))) 
-con <- tmpData [['year']] == 2019 & tmpData [['treatment']] == 'chilled'
-points (x = tmpData [['sampleHeight']] [con], 
-        y = tmpData [['mass']] [con] / 1000,
-        pch = 23, col = tColours [['colour']] [4], lwd = 2)
+# Small reduction of mass per 1cm2 cross-sectional area.⎄
 
 imageData <- tmpData
 rm (data, tmpData, files, mod0, mod1, vessels2018, vessels2019, con, decomposedNames, 
