@@ -19,7 +19,7 @@ if (!exists ('cAIC')) library ('cAIC4')
 
 # read the raw photosynthesis data
 #----------------------------------------------------------------------------------------
-photoData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/instantaneous_photosynthesis_Exp2019.csv',
+photoData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/instantaneous_photosynthesis_HF_Exp2019.csv',
                        col_types = cols ()) %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M')) %>%
   select (-date, -comments) %>%
@@ -30,7 +30,7 @@ photoData <- read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthes
           se.photosynthetic.rate = se (c (photosynthetic.rate.1, photosynthetic.rate.2, 
                                           photosynthetic.rate.3, photosynthetic.rate.4, 
                                           photosynthetic.rate.5)),
-          tree = factor (tree.id),
+          tree = factor (tree),
           treatment = factor (treatment),
           position = factor (position))
 
@@ -82,19 +82,19 @@ dev.off ()
 # read A/Ci curves 
 #----------------------------------------------------------------------------------------
 ACiData <- 
-  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_ACi_curves_Exp2019.csv',
+  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_ACi_curves_HF_Exp2019.csv',
             col_types = cols ()) %>%
   filter (study == 'Exp') %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
   select (-date, -time, -position, -study, -FTime) %>%
-  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
+  mutate (treatment = ifelse (tree %in% c (1901, 1903, 1905, 1908), 1, 5)) %>%
   rename (Photo = photosynthetic.rate, # change names for processing using plantecophys package
           Ci = ci,
           Tleaf = t.leaf,
           PARi = par.i,
           Ci_Pa = ci.Pa,
           Tleaf_K = t.air.k) %>% 
-  filter (!(tree.id == 1903 & leaf.id %in% c ('II','K','LL','MM')))
+  filter (!(tree == 1903 & leaf %in% c ('II','K','LL','MM')))
 
 # plot A/Ci data 
 #----------------------------------------------------------------------------------------
@@ -130,14 +130,14 @@ dev.off ()
 # read data for light response curves
 #----------------------------------------------------------------------------------------
 lightResponseData <- 
-  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_light_response_curves_Exp2019.csv',
+  read_csv (file = '/media/tim/dataDisk/PlantGrowth/data/photosynthesis/photosynthesis_light_response_curves_HF_Exp2019.csv',
             col_types = cols ()) %>%
   filter (study == 'Exp') %>%
   mutate (datetime = as.POSIXct (paste (date, time), format = '%Y-%m-%d %H:%M:%S')) %>%
   select (-date, -time, -position, -study, -FTime) %>%
-  mutate (treatment = ifelse (tree.id %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
-  filter (!(tree.id == 1905 & leaf.id == 'L'),
-          !(tree.id == 1907 & leaf.id == 'L'))
+  mutate (treatment = ifelse (tree %in% c (1901, 1903, 1905, 1908), 1, 5)) %>% 
+  filter (!(tree == 1905 & leaf == 'L'),
+          !(tree == 1907 & leaf == 'L'))
   
 # plot light response curves 
 #----------------------------------------------------------------------------------------

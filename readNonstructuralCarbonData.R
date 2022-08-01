@@ -7,7 +7,7 @@
 # get original working directory and switch to directory with NSCprocessR package 
 #----------------------------------------------------------------------------------------
 originalDir <- getwd ()
-packageDir <- '/home/tim/projects/PlantGrowth/nonstructuralCarbon/' 
+packageDir <- '/home/tim/projects/NSF-PlantGrowth/nonstructuralCarbon/' 
 setwd (packageDir)
 
 # load dependencies

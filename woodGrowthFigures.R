@@ -14,7 +14,7 @@ if (!existsFunction ('cAIC')) library ('cAIC4')
 
 # read in the ring width data that Patrick prepared 
 #----------------------------------------------------------------------------------------
-#if (!exists ('xyloData')) source ('readXylogenesisData.R')
+if (!exists ('xyloData')) source ('readXylogenesisData.R')
 if (!exists ('imageData')) source ('analyseCellWallArea.R')
 
 # read in the visual observations

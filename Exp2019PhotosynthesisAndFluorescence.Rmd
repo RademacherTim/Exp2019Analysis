@@ -1,9 +1,8 @@
 ---
-title: |
-  | Supplement 1: Photosynthesis and fluorescence
-date: "2021/07/27"
-output: 
-  bookdown::pdf_document2: default
+title: false
+toc: false
+date: "2022/08/01"
+output: bookdown::pdf_document2
 bibliography: "../bib/Exp2019Chilling.bib"
 csl: "../bib/harvard.csl"
 ---
@@ -16,6 +15,16 @@ if (!existsFunction ('lmer')) library ('lme4')
 if (!existsFunction ('cAIC')) library ('cAIC4')
 if (!exists ('tColours')) source ('plotingFunctions.R')
 ```
+
+\textbf{\textit{New Phytologist} supporting information}
+
+\textbf{Article title:} Insights into source/sink controls on wood formation and photosynthesis from a stem chilling experiment in mature red maple
+
+\textbf{Authors:} Tim Rademacher, Patrick Fonti, James M. LeMoine, Marina V. Fonti, Francis Bowles, Yizhao Chen, Annemarie H. Eckes-Shephard, Andrew D. Friend, Andrew D. Richardson
+
+\textbf{Article acceptance date:} 30 July 2022
+
+# Notes S4 - Photosynthesis and fluorescence {-}
 
 \begin {center}
   \textit {This pdf was generated from an Rmarkdown file, which includes all R code necessary to reproduce the estimations. The Rmarkdown file is available on github  (https://github.com/TTRademacher/Exp2019Analysis) and is permanently and publicly archived on the Harvard Forest Data Archives.}
@@ -93,11 +102,11 @@ tableData <- tibble (columnEffects, columnRandom, columncAIC) %>%
   mutate (columncAIC = as.numeric (columncAIC))
 ```
 
-For instantaneous rates, the best mixed effects model included only interactive fixed effects of time of day and position in the canopy and a random effect accounting for natural between-tree variability (table S\@ref(tab:MEM-outputs)). This model estimated the time of day and position effects at -0.7±0.3 and -2.1±0.5 $\mu mol \, m^{-2} \, s^{-1}$, respectively, and their interactions at 2.6±0.8 $\mu mol \, m^{-2} \, s^{-1}$. This model was only marginally better according to the conditional AIC than several alternative model formulations that included a treatment effect. When the treatment effect was included is was estimated to range from reducing photosynthesis in chilled trees by -0.3±0.7 to -0.7±0.9 $\mu mol \, m^{-2} \, s^{-1}$ compared to control trees. However, any difference between chilled and control trees appears to have been larger at the bottom of the canopy (fig. 6B). Overall, there is little evidence for a feedback effect on instantaneous photosynthesis rates.
+For instantaneous rates, the best mixed effects model included only interactive fixed effects of time of day and position in the canopy and a random effect accounting for natural between-tree variability (Table S1)). This model estimated the time of day and position effects at -0.7±0.3 and -2.1±0.5 $\mu mol \, m^{-2} \, s^{-1}$, respectively, and their interactions at 2.6±0.8 $\mu mol \, m^{-2} \, s^{-1}$. This model was only marginally better according to the conditional AIC than several alternative model formulations that included a treatment effect. When the treatment effect was included, it was estimated to range from reducing photosynthesis in chilled trees by -0.3±0.7 to -0.7±0.9 $\mu mol \, m^{-2} \, s^{-1}$ compared to control trees. However, any difference between treatments appears to have been larger at the bottom of the canopy (Fig. 6B). Overall, there is little evidence for a feedback effect on instantaneous photosynthesis rates.
 
 ```{r MEM-outputs, echo = FALSE, out.width = "90%"}
 kbl (tableData, 
-     caption = 'gives the conditions AIC for various formulations of mixed effect models fitted to the instantaneous photosynthetic rates measured in chilled and control trees towards the end of the chilling period. This table was automatically generated from publicly available code and data (data set ID here) on the Harvard Forest Data Archive.',
+     caption = 'Gives the conditional AIC for various formulations of mixed effect models fitted to the instantaneous photosynthetic rates measured in chilled and control trees towards the end of the chilling period. "time" refers to the time of day, "position" to the canopy position (sun-leaves towards the top of the canopy versus shade-leaves towards the bottom of the canopy), and "treatment" refers to the treatment effect. Notation of the fixed effects is according to the lme4 package. This table was automatically generated from publicly available code and data (data set ID here) on the Harvard Forest Data Archive.',
      col.names = NULL,
      digits = c (0,0,2),
      booktab = TRUE) %>% 
@@ -153,7 +162,7 @@ axis (side = 2, at = seq (0, 10, by = 2), las = 1)
 
 ## A/Ci curves
 
-To estimate whether chilling affected the photosynthetic apparatus, we derives maximal rates of photosynthetic electron transport (J$_{max}$) and RuBisCO carboxylase activity (V$_{cmax}$), and dark respiration ($R_d$) from measurements of assimilation in response to varying leaf internal CO$_2$ concentrations. We estimated photosynthethic parameters by fitting a model using the 'plantecophys' package [@duursma_plantecophys_2015], which showed significant difference in photosynthetic parameters between chilled and control trees (fig. 6A). V$_{cmax}$ was 46.6±1.5 $\mu mol \, m^{-2} \, s^{-1}$ for chilled trees instead of 52.1±1.7 $\mu mol \, m^{-2} \, s^{-1}$ for control trees, J$_{max}$ was also lower at 85 $\mu mol \, m^{-2} \, s^{-1}$ for chilled compared to 97 $\mu mol \, m^{-2} \, s^{-1}$ for control trees, whereas dark respiration increased by 5% in chilled trees relative to control.
+To estimate whether chilling affected the photosynthetic apparatus, we derived maximal rates of photosynthetic electron transport (J$_{max}$) and RuBisCO carboxylase activity (V$_{cmax}$), and dark respiration ($R_d$) from measurements of assimilation in response to varying leaf internal CO$_2$ concentrations. We estimated photosynthethic parameters by fitting a model using the 'plantecophys' package [@duursma_plantecophys_2015], which showed significant difference in photosynthetic parameters between chilled and control trees (Fig. 6A). V$_{cmax}$ was 46.6±1.5 $\mu mol \, m^{-2} \, s^{-1}$ for chilled trees instead of 52.1±1.7 $\mu mol \, m^{-2} \, s^{-1}$ for control trees, J$_{max}$ was also lower at 85 $\mu mol \, m^{-2} \, s^{-1}$ for chilled compared to 97 $\mu mol \, m^{-2} \, s^{-1}$ for control trees, whereas dark respiration increased by 5% in chilled trees relative to control.
 
 ``` {r ACi-curves, echo = FALSE, include = FALSE, fig.cap = "shows photosynthetic assimilation as a function of CO$_2$ concentration for chilled (blue diamands) and control trees (green dots). Blue and green lines display the best fitted photosynthetic model using the 'plantecophys' R package for chilled and control groups respectively."}
 
@@ -207,7 +216,7 @@ plot (fit_chilled, add = TRUE, linecol = tColours [['colour']] [4:6],
 
 ## Light response curves
 
-In contrast to the A/Ci curves, light response curves varied seemingly idiosyncratically between trees and there was no clear association between of chilling and the light response curves in the leaves in the top of the canopy (Fig. S\@ref(fig:light-response)). One chilled tree showed the lowest light response curve and saturation level, yet the two highest saturation levels were also found in chilled trees. 
+In contrast to the A/Ci curves, light response curves varied seemingly idiosyncratically between trees and there was no clear association between of chilling and the light response curves in the leaves in the top of the canopy (Fig. S1). One chilled tree showed the lowest light response curve and saturation level, yet the two highest saturation levels were also found in chilled trees. 
 
 ``` {r light-response, echo = FALSE, fig.cap = "shows the light response curve measurement for chilled (blue diamonds) and control trees (green dots). "}
 # read data for light response curves
@@ -241,9 +250,9 @@ points (x = lightResponseData [['par.i']] [lightResponseData [['treatment']] == 
 
 # Leaf fluorescence
 
-Leaf chlorophyll fluorescence in particular the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in dark-adapted leaves is know to be a reliable indicator of stress to photosystem II [@kitajima_quenching_1975] and has also been directly linked to low temperature stress [@baker_applications_2004;@groom_analysis_1992]. To test whether photosystem II was stressed by the chilling in our experiment, we measured minimum fluorescence (Fo), maximum fluorescence (Fm) and the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in light-adapted and dark-adapted leaves during the last 10 days of chilling (Fig. 1). Directly after each photosynthesis measurement, we removed the leaf from the twig and immediately measured chlorophyll fluorescence with a OS-30P chlorophyll fluorometer (Opti-Sciences, Hudson, New Hampshire, USA). Subsequently, we wrapped the leaves in aluminium foil and stored them in a chest cooler with ice, before re-measuring fluorescense of the dark-adapted leaves in the evening of each sampling day (i.e., after several hours of dark-adaptation). Finally, the leaves were weighted, scanned (Epson Perfection V550 Photo Scanner, Long Beach, California, USA), dried at 60$^{\circ}C$ for 24 hours, and weighted again to obtain leaf area, fresh weight and dry weight for each leaf.  
+Leaf chlorophyll fluorescence in particular the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in dark-adapted leaves is known to be a reliable indicator of stress to photosystem II [@kitajima_quenching_1975] and has also been directly linked to low temperature stress [@baker_applications_2004;@groom_analysis_1992]. To test whether photosystem II was stressed by the chilling in our experiment, we measured minimum fluorescence (Fo), maximum fluorescence (Fm) and the ratio of variable fluorescence over maximum fluorescence (Fv/Fm) in light-adapted and dark-adapted leaves during the last 10 days of chilling (Fig. 1). Directly after each photosynthesis measurement, we removed the leaf from the twig and immediately measured chlorophyll fluorescence with a OS-30P chlorophyll fluorometer (Opti-Sciences, Hudson, New Hampshire, USA). Subsequently, we wrapped the leaves in aluminium foil and stored them in a chest cooler with ice, before re-measuring fluorescence of the dark-adapted leaves in the evening of each sampling day (i.e., after several hours of dark-adaptation). Finally, the leaves were weighted, scanned (Epson Perfection V550 Photo Scanner, Long Beach, California, USA), dried at 60$^{\circ}C$ for 24 hours, and weighted again to obtain leaf area, fresh weight and dry weight for each leaf.  
 
-Overall, there were no stark differences in leaf fluorescence between chilled and control trees (Fig. S\@ref(fig:FvOverFm) & S\@ref(fig:Fm)). Dark adapted Fv/Fm were generally close to 0.8, which is close to the assumed optimum for many plant species [@maxwell_chlorophyll_2000]. However, there was a small difference between Fv/Fm for chilled and control trees (Fig. S\@ref(fig:FvOverFm)). The estimated treatment effect was -0.14±0.01, when we fit the mixed effects model containing position of the leaf in the canopy, treatment and their interaction. While this model minimised information loss according to the conditional AIC, it only looses marginally more information than a model that does not contain a treatment effect. Although the estimated effect is comparable to declines in wheat and maize leaves due to cold stress [@groom_analysis_1992;@andrews_characterization_1995], it is also of similar magnitude as normal seasonal changes in Fv/Fm of green summer and green autumn leaves in the closely related sugar maple [@junker_relationship_2016]. The lack of a clear difference suggests that the maximum potential quantum efficiency of photosystem II was not strongly affected by chilling here. 
+Overall, there were no stark differences in leaf fluorescence between chilled and control trees (Fig. S2 & S3). Dark adapted Fv/Fm were generally close to 0.8, which is close to the assumed optimum for many plant species [@maxwell_chlorophyll_2000]. However, there was a small difference between Fv/Fm for chilled and control trees (Fig. S2). The estimated treatment effect was -0.14±0.01, when we fit the mixed effects model containing position of the leaf in the canopy, treatment and their interaction. While this model minimised information loss according to the conditional AIC, it only looses marginally more information than a model that does not contain a treatment effect. Although the estimated effect is comparable to declines in wheat and maize leaves due to cold stress [@groom_analysis_1992;@andrews_characterization_1995], it is also of similar magnitude as normal seasonal changes in Fv/Fm of green summer and green autumn leaves in the closely related sugar maple [@junker_relationship_2016]. The lack of a clear difference suggests that the maximum potential quantum efficiency of photosystem II was not strongly affected by chilling here. 
 
 ``` {r FvOverFm, echo = FALSE, out.width = "50%", fig.cap = "shows Fv/Fm measured immediately after removal and after dark-adapting each leaf for several hours for chilled trees (blue diamonds) and control trees (green dots) for leaves from the bottom (open symbols) and the top (closed symbols) of the canopy."}
 # read fluorescence data
@@ -377,7 +386,7 @@ tmpData <- fluorescenceData %>% select (tree, leaf, treatment, position, FvOverF
 # cAIC (mod4)
 ```
 
-While there were no differences in minimum and maximum fluorescence between treatments (i.e., chilled versus control), there were differences in the minimum and maximum fluorescence between leaves from the bottom and the top of the canopy, when measured directly after the leaves were removed from the canopy. These differences persist, albeit slightly smaller, once leaves were dark-adapted (Fig. S\@ref(fig:Fm)). Such differences in fluorescence between sun- and shade-leaves have also been reported for four other temperate deciduous tree species [@lichtenthaler_differences_2007] and are supported by theoretical models [@olioso_simulation_1992].
+While there were no differences in minimum and maximum fluorescence between treatments (i.e., chilled versus control), there were differences in the minimum and maximum fluorescence between leaves from the bottom and the top of the canopy, when measured directly after the leaves were removed from the canopy. These differences persist, albeit slightly smaller, once leaves were dark-adapted (Fig. S3). Such differences in fluorescence between sun- and shade-leaves have also been reported for four other temperate deciduous tree species [@lichtenthaler_differences_2007] and are supported by theoretical models [@olioso_simulation_1992].
 
 ``` {r Fm, echo = FALSE, out.width = "50%", fig.show = 'hold', fig.cap = "shows minimum (Fo) and maximum fluorescence (Fm) measured immediately after removal and after dark-adapting each leaf for several hours for chilled trees (blue diamonds) and control trees (green dots) for leaves from the bottom (open symbols) and the top (closed symbols) of the canopy."}
 # Fo straight away versus dark-adapted

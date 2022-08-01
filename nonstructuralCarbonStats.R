@@ -7,13 +7,13 @@
 
 # load dependencies
 #----------------------------------------------------------------------------------------
-if (!existsFunction ('lmer')) library ('lme4')
-if (!existsFunction ('%>%'))  library ('tidyverse')
-if (!exists ('tColours')) source ('./plotingFunctions.R')
+if (!existsFunction ('lmer')) library('lme4')
+if (!existsFunction ('%>%'))  library('tidyverse')
+if (!exists ('tColours')) source('./plotingFunctions.R')
 
 # source processed data
 #----------------------------------------------------------------------------------------
-if (!exists ('leafData2019')) source ('./readNonstructuralCarbonData.R') 
+if (!exists ('leafData2019')) source('./readNonstructuralCarbonData.R') 
 
 # select only necessary columns and wrangle data to contain factors
 #----------------------------------------------------------------------------------------
